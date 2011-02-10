@@ -7,7 +7,7 @@ if len(sys.argv) != 3:
 	print sys.argv[0], "VERSION PLATFORM"
 	sys.exit(-1)
 
-name = "DDRace"
+name = "DDRaceStableConverter"
 version = sys.argv[1]
 platform = sys.argv[2]
 exe_ext = ""
@@ -62,9 +62,7 @@ print "adding files"
 shutil.copy("readme.txt", package_dir)
 shutil.copy("license.txt", package_dir)
 shutil.copy("storage.cfg", package_dir)
-shutil.copy("announcement.txt", package_dir)
 shutil.copy("license_DDRace.txt", package_dir)
-shutil.copy("banmasters.cfg", package_dir)
 
 if include_data and not use_bundle:
 	os.mkdir(os.path.join(package_dir, "data"))
@@ -75,7 +73,6 @@ if include_data and not use_bundle:
 
 if include_exe and not use_bundle:
 	shutil.copy(name+exe_ext, package_dir)
-	shutil.copy(name+"-Server"+exe_ext, package_dir)
 	
 if include_src:
 	for p in ["src", "scripts", "datasrc", "other", "objs"]:
