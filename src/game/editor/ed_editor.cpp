@@ -2983,7 +2983,7 @@ int CEditor::PopupMenuFile(CEditor *pEditor, CUIRect View)
 	View.HSplitTop(12.0f, &Slot, &View);
 	if(pEditor->DoButton_MenuItem(&s_ExitButton, Localize("Exit"), 0, &Slot, 0, Localize("Exits from the editor")))
 	{
-		g_Config.m_ClEditor = 0;
+		g_Config.m_ClEditor = 1;
 		return 1;
 	}
 

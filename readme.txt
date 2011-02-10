@@ -1,18 +1,9 @@
-This is a mod (DDRace) and it's for the game Teeworlds and it's being maintained by GreYFoX@GTi & btd with the help of others like heinrich5991, noother & Floff, in the previous versions 3da and Fluxid.
+This Branch is for a client made specifically to Convert Old DDRace beta 0.5.2 Maps to the newest trunk maps
 
-DDRace has been rebuilt from scratch by btd based on DDRace-Beta to Teeworlds Trunk 0.5, GreYFoX@GTi helped re-adding features once it was Trunk, you can track this in the commit log.
+1. Compile the Converter.
+2. Open it and load the map.
+3. Save.
+4. Close the conv client.
+5. Open the map in the latest client/server.
 
-Please visit http://www.DDRace.info for up-to-date information about 
-DDRace, including new versions, custom maps and much more.
-
-Teeworlds README is as follows:
-Copyright (c) 2011 Magnus Auvinen
-
-
-This software is provided 'as-is', without any express or implied
-warranty. In no event will the authors be held liable for any damages
-arising from the use of this software.
-
-
-Please visit http://www.teeworlds.com for up-to-date information about 
-the game, including new versions, custom maps and much more.
+NOTE: THis will only convert DDRace beta maps the ones that has front entities.png in the 1st layer of the 1st group

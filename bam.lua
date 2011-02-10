@@ -263,11 +263,11 @@ function build(settings)
 	end
 	
 	-- build client, server, version server and master server
-	client_exe = Link(client_settings, "DDRace", game_shared, game_client,
+	client_exe = Link(client_settings, "DDRaceBetaConverter", game_shared, game_client,
 		engine, client, game_editor, zlib, pnglite, wavpack,
 		client_link_other, client_osxlaunch)
 
-	server_exe = Link(server_settings, "DDRace-Server", engine, server,
+	server_exe = Link(server_settings, "INVALID", engine, server,
 		game_shared, game_server, zlib)
 
 	serverlaunch = {}
@@ -286,27 +286,8 @@ function build(settings)
 
 	-- make targets
 	c = PseudoTarget("client".."_"..settings.config_name, client_exe, client_depends)
-	if string.find(settings.config_name, "nosql") then
-		s = PseudoTarget("server".."_"..settings.config_name, server_exe, serverlaunch)
-	else
-		if family == "windows" then
-			if string.find(settings.config_name, "sql") or not string.find(settings.config_name, "release") then
-				s = PseudoTarget("server".."_"..settings.config_name, server_exe, serverlaunch, server_sql_depends)
-			else
-				s = PseudoTarget("server".."_"..settings.config_name, server_exe, serverlaunch)
-			end
-		else
-				s = PseudoTarget("server".."_"..settings.config_name, server_exe, serverlaunch, server_sql_depends)
-		end
-	end
 	g = PseudoTarget("game".."_"..settings.config_name, client_exe, server_exe)
-
-	v = PseudoTarget("versionserver".."_"..settings.config_name, versionserver_exe)
-	m = PseudoTarget("masterserver".."_"..settings.config_name, masterserver_exe)
-	b = PseudoTarget("banmaster".."_"..settings.config_name, banmaster_exe)
-	t = PseudoTarget("tools".."_"..settings.config_name, tools)
-
-	all = PseudoTarget(settings.config_name, c, s, v, m, b, t)
+	all = PseudoTarget(settings.config_name, c)
 	return all
 end
 

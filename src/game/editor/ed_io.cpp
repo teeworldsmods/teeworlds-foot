@@ -338,7 +338,19 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 					delete[] Tiles;
 				}
 				else
+				{
 					Item.m_Data = df.AddData(pLayer->m_Width*pLayer->m_Height*sizeof(CTile), pLayer->m_pTiles);
+					/*
+					if(pLayer->m_Game)
+						for(int i = 0; i < pLayer->m_Width*pLayer->m_Height; i++)
+						{
+							if(pLayer->m_pTiles[i].m_Index)
+							{
+								//dbg_msg("Save","%d",pLayer->m_pTiles[i].m_Index);
+							}
+						}
+					 */
+				}
 				df.AddItem(MAPITEMTYPE_LAYER, LayerCount, sizeof(Item), &Item);
 				
 				GItem.m_NumLayers++;
@@ -429,6 +441,8 @@ int CEditor::Load(const char *pFileName, int StorageType)
 int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int StorageType)
 {
 	CDataFileReader DataFile;
+	CLayerTiles *pFrontTemp = 0, *pTeleTemp = 0, *pSpeedupTemp = 0;
+	bool ParsedGame = false;
 	//DATAFILE *df = datafile_load(filename);
 	if(!DataFile.Open(pStorage, pFileName, StorageType))
 		return 0;
@@ -580,7 +594,8 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 
 						pLayer = pTiles;
 						
-						pGroup->AddLayer(pTiles);
+						if(g != 0 || l != 0)
+							pGroup->AddLayer(pTiles);
 						void *pData = DataFile.GetData(pTilemapItem->m_Data);
 						pTiles->m_Image = pTilemapItem->m_Image;
 						pTiles->m_Game = pTilemapItem->m_Flags&1;
@@ -592,10 +607,505 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 							for(int i = 0; i < pTiles->m_Width*pTiles->m_Height; i++)
 							{
 								if(pTiles->m_pTiles[i].m_Index)
+								{
 									pTiles->m_pTiles[i].m_Index += ENTITY_OFFSET;
+									//dbg_msg("Load!","%d",pTiles->m_pTiles[i].m_Index);
+								}
 							}
 						}
-						
+
+						if(g == 0 && l == 0)
+						{
+							pSpeedupTemp = pTeleTemp = pFrontTemp = 0;
+
+							//pTiles->m_Front = true;
+							pFrontTemp = new CLayerFront(pTilemapItem->m_Width, pTilemapItem->m_Height);
+							pTeleTemp = new CLayerTele(pTilemapItem->m_Width, pTilemapItem->m_Height);
+							pSpeedupTemp = new CLayerSpeedup(pTilemapItem->m_Width, pTilemapItem->m_Height);
+							MakeFrontLayer(pFrontTemp);
+							MakeTeleLayer(pTeleTemp);
+							MakeSpeedupLayer(pSpeedupTemp);
+
+							for(int i = 0; i < pTiles->m_Width*pTiles->m_Height; i++)
+							{
+								if(((CLayerFront*)pTiles)->m_pTiles[i].m_Index)
+									switch(((CLayerFront*)pTiles)->m_pTiles[i].m_Index)
+									{
+									case OLD_SPAWN + ENTITY_OFFSET:
+									case OLD_SPAWN_RED + ENTITY_OFFSET:
+									case OLD_SPAWN_BLUE + ENTITY_OFFSET:
+									case OLD_FLAGSTAND_RED + ENTITY_OFFSET:
+									case OLD_FLAGSTAND_BLUE + ENTITY_OFFSET:
+										((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = 0;
+										break;
+									/*
+									case OLD_ARMOR_1 + ENTITY_OFFSET:
+
+										break;
+									case OLD_HEALTH_1 + ENTITY_OFFSET:
+
+										break;
+									case OLD_WEAPON_SHOTGUN + ENTITY_OFFSET:
+
+										break;
+									case OLD_WEAPON_GRENADE + ENTITY_OFFSET:
+
+										break;
+									case OLD_POWERUP_NINJA + ENTITY_OFFSET:
+
+										break;
+									case OLD_WEAPON_RIFLE + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_FAST_CW + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_NORMAL_CW + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_SLOW_CW + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_STOP + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_SLOW_CCW + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_NORMAL_CCW + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_FAST_CCW + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_SHORT + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_MIDDLE + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_LONG + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_C_SLOW + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_C_NORMAL + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_C_FAST + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_O_SLOW + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_O_NORMAL + ENTITY_OFFSET:
+
+										break;
+									case OLD_LASER_O_FAST + ENTITY_OFFSET:
+
+										break;
+									*/
+									case OLD_DRAGER_WEAK + ENTITY_OFFSET:
+									((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = ENTITY_DRAGGER_WEAK + ENTITY_OFFSET;
+										break;
+									case OLD_DRAGER_NORMAL + ENTITY_OFFSET:
+									((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = ENTITY_DRAGGER_NORMAL + ENTITY_OFFSET;
+										break;
+									case OLD_DRAGER_STRONG + ENTITY_OFFSET:
+									((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = ENTITY_DRAGGER_STRONG + ENTITY_OFFSET;
+										break;
+									case OLD_PLASMA + ENTITY_OFFSET:
+									((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = ENTITY_PLASMA + ENTITY_OFFSET;
+										break;
+									case OLD_DRAGER_WEAK_NW + ENTITY_OFFSET:
+									((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = ENTITY_DRAGGER_WEAK_NW + ENTITY_OFFSET;
+										break;
+									case OLD_DRAGER_NORMAL_NW + ENTITY_OFFSET:
+									((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = ENTITY_DRAGGER_NORMAL_NW + ENTITY_OFFSET;
+										break;
+									case OLD_DRAGER_STRONG_NW + ENTITY_OFFSET:
+									((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = ENTITY_DRAGGER_STRONG_NW + ENTITY_OFFSET;
+										break;
+									/*
+									case TOLD_SOLID:
+
+										break;
+									case TOLD_DEATH:
+
+										break;
+									case TOLD_NOHOOK:
+
+										break;
+									case TOLD_NOLASER:
+
+										break;
+									*/
+									case TOLD_BOOST_L:
+										((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = 0;
+										((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 3;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 180;
+										break;
+									case TOLD_BOOST_R:
+										((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = 0;
+										((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 3;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 0;
+										break;
+									case TOLD_BOOST_D:
+										((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = 0;
+										((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 2;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 90;
+										break;
+									case TOLD_BOOST_U:
+										((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = 0;
+										((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 2;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 270;
+										break;
+									//case TOLD_FREEZE:
+									case TOLD_KICK:
+										((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = 0; //Removed
+										break;
+									//case TOLD_UNFREEZE:
+									case TOLD_BOOST_L2:
+										((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = 0;
+										((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 15;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 180;
+										break;
+									case TOLD_BOOST_R2:
+										((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = 0;
+										((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 15;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 0;
+										break;
+									case TOLD_BOOST_D2:
+										((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = 0;
+										((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 15;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 90;
+										break;
+									case TOLD_BOOST_U2:
+										((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = 0;
+										((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 15;
+										((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 270;
+										break;
+									case TOLD_CP_D:
+									case TOLD_CP_U:
+									case TOLD_CP_R:
+									case TOLD_CP_L:
+									case TOLD_CP_D_F:
+									case TOLD_CP_U_F:
+									case TOLD_CP_R_F:
+									case TOLD_CP_L_F:
+									case TOLD_BEGIN:
+									case TOLD_END:
+										((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = 0;
+										break;
+									default:
+										((CLayerFront*)pTiles)->m_pTiles[i].m_Index = 0;
+										((CLayerFront*)pFrontTemp)->m_pTiles[i].m_Index = ((CLayerFront*)pTiles)->m_pTiles[i].m_Index;
+										break;
+									}
+							}
+						}
+
+						if(pTiles->m_Game)
+						{
+							for(int i = 0; i < pTiles->m_Width*pTiles->m_Height; i++)
+							{
+								if(pTiles->m_pTiles[i].m_Index)
+								{
+									//dbg_msg("Load","%d",pTiles->m_pTiles[i].m_Index);
+									if(pTiles->m_pTiles[i].m_Index >= 35 && pTiles->m_pTiles[i].m_Index <= 190)
+									{
+										if (pTiles->m_pTiles[i].m_Index % 2 == 0)
+										{
+											((CLayerTiles*)pTeleTemp)->m_pTiles[i].m_Index = TILE_TELEIN;
+											((CLayerTele*)pTeleTemp)->m_pTeleTile[i].m_Type = TILE_TELEIN;
+											((CLayerTele*)pTeleTemp)->m_pTeleTile[i].m_Number = pTiles->m_pTiles[i].m_Index/2 - 17;
+										}
+										else
+										{
+											((CLayerTiles*)pTeleTemp)->m_pTiles[i].m_Index = TILE_TELEOUT;
+											((CLayerTele*)pTeleTemp)->m_pTeleTile[i].m_Type = TILE_TELEOUT;
+											((CLayerTele*)pTeleTemp)->m_pTeleTile[i].m_Number = (pTiles->m_pTiles[i].m_Index + 1)/2 - 17;
+										}
+										pTiles->m_pTiles[i].m_Index = 0;
+									}
+									else
+									{
+										switch(pTiles->m_pTiles[i].m_Index)
+										{
+										/*
+										case OLD_SPAWN + ENTITY_OFFSET:
+
+											break;
+										case OLD_SPAWN_RED + ENTITY_OFFSET:
+
+											break;
+										case OLD_SPAWN_BLUE + ENTITY_OFFSET:
+
+											break;
+										case OLD_FLAGSTAND_RED + ENTITY_OFFSET:
+
+											break;
+										case OLD_FLAGSTAND_BLUE + ENTITY_OFFSET:
+
+											break;
+										case OLD_ARMOR_1 + ENTITY_OFFSET:
+
+											break;
+										case OLD_HEALTH_1 + ENTITY_OFFSET:
+
+											break;
+										case OLD_WEAPON_SHOTGUN + ENTITY_OFFSET:
+
+											break;
+										case OLD_WEAPON_GRENADE + ENTITY_OFFSET:
+
+											break;
+										case OLD_POWERUP_NINJA + ENTITY_OFFSET:
+
+											break;
+										case OLD_WEAPON_RIFLE + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_FAST_CW + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_NORMAL_CW + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_SLOW_CW + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_STOP + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_SLOW_CCW + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_NORMAL_CCW + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_FAST_CCW + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_SHORT + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_MIDDLE + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_LONG + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_C_SLOW + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_C_NORMAL + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_C_FAST + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_O_SLOW + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_O_NORMAL + ENTITY_OFFSET:
+
+											break;
+										case OLD_LASER_O_FAST + ENTITY_OFFSET:
+
+											break;
+										*/
+										case OLD_DRAGER_WEAK + ENTITY_OFFSET:
+											pTiles->m_pTiles[i].m_Index = ENTITY_DRAGGER_WEAK + ENTITY_OFFSET;
+											break;
+										case OLD_DRAGER_NORMAL + ENTITY_OFFSET:
+											pTiles->m_pTiles[i].m_Index = ENTITY_DRAGGER_NORMAL + ENTITY_OFFSET;
+											break;
+										case OLD_DRAGER_STRONG + ENTITY_OFFSET:
+											pTiles->m_pTiles[i].m_Index = ENTITY_DRAGGER_STRONG + ENTITY_OFFSET;
+											break;
+										case OLD_PLASMA + ENTITY_OFFSET:
+											pTiles->m_pTiles[i].m_Index = ENTITY_PLASMA + ENTITY_OFFSET;
+											break;
+										case OLD_DRAGER_WEAK_NW + ENTITY_OFFSET:
+											pTiles->m_pTiles[i].m_Index = ENTITY_DRAGGER_WEAK_NW + ENTITY_OFFSET;
+											break;
+										case OLD_DRAGER_NORMAL_NW + ENTITY_OFFSET:
+											pTiles->m_pTiles[i].m_Index = ENTITY_DRAGGER_NORMAL_NW + ENTITY_OFFSET;
+											break;
+										case OLD_DRAGER_STRONG_NW + ENTITY_OFFSET:
+											pTiles->m_pTiles[i].m_Index = ENTITY_DRAGGER_STRONG_NW + ENTITY_OFFSET;
+											break;
+										/*
+										case TOLD_SOLID:
+
+											break;
+										case TOLD_DEATH:
+
+											break;
+										case TOLD_NOHOOK:
+
+											break;
+										case TOLD_NOLASER:
+
+											break;
+										*/
+										case TOLD_BOOST_L:
+											pTiles->m_pTiles[i].m_Index = 0;
+											((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 3;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 180;
+											break;
+										case TOLD_BOOST_R:
+											pTiles->m_pTiles[i].m_Index = 0;
+											((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 3;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 0;
+											break;
+										case TOLD_BOOST_D:
+											pTiles->m_pTiles[i].m_Index = 0;
+											((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 2;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 90;
+											break;
+										case TOLD_BOOST_U:
+											pTiles->m_pTiles[i].m_Index = 0;
+											((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 2;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 270;
+											break;
+										//case TOLD_FREEZE:
+										case TOLD_KICK:
+											pTiles->m_pTiles[i].m_Index = 0;
+											break;
+										//case TOLD_UNFREEZE:
+										case TOLD_BOOST_L2:
+											pTiles->m_pTiles[i].m_Index = 0;
+											((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 15;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 180;
+											break;
+										case TOLD_BOOST_R2:
+											pTiles->m_pTiles[i].m_Index = 0;
+											((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 15;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 0;
+											break;
+										case TOLD_BOOST_D2:
+											pTiles->m_pTiles[i].m_Index = 0;
+											((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 15;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 90;
+											break;
+										case TOLD_BOOST_U2:
+											pTiles->m_pTiles[i].m_Index = 0;
+											((CLayerTiles*)pSpeedupTemp)->m_pTiles[i].m_Index = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Type = TILE_BOOST;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Force = 15;
+											((CLayerSpeedup*)pSpeedupTemp)->m_pSpeedupTile[i].m_Angle = 270;
+											break;
+										case TOLD_CP_D:
+											pTiles->m_pTiles[i].m_Index = TILE_CP;
+											pTiles->m_pTiles[i].m_Flags = ROTATION_180;
+											break;
+										case TOLD_CP_U:
+											pTiles->m_pTiles[i].m_Index = TILE_CP;
+											pTiles->m_pTiles[i].m_Flags = ROTATION_0;
+											break;
+										case TOLD_CP_R:
+											pTiles->m_pTiles[i].m_Index = TILE_CP;
+											pTiles->m_pTiles[i].m_Flags = ROTATION_90;
+											break;
+										case TOLD_CP_L:
+											pTiles->m_pTiles[i].m_Index = TILE_CP;
+											pTiles->m_pTiles[i].m_Flags = ROTATION_270;
+											break;
+										case TOLD_CP_D_F:
+											pTiles->m_pTiles[i].m_Index = TILE_CP_F;
+											pTiles->m_pTiles[i].m_Flags = ROTATION_180;
+											break;
+										case TOLD_CP_U_F:
+											pTiles->m_pTiles[i].m_Index = TILE_CP_F;
+											pTiles->m_pTiles[i].m_Flags = ROTATION_0;
+											break;
+										case TOLD_CP_R_F:
+											pTiles->m_pTiles[i].m_Index = TILE_CP_F;
+											pTiles->m_pTiles[i].m_Flags = ROTATION_90;
+											break;
+										case TOLD_CP_L_F:
+											pTiles->m_pTiles[i].m_Index = TILE_CP_F;
+											pTiles->m_pTiles[i].m_Flags = ROTATION_270;
+											break;
+										/*
+										case TOLD_BEGIN:
+
+											break;
+										case TOLD_END:
+
+											break;
+										default:
+
+											break;
+										*/
+										}
+									}
+								}
+							}
+							ParsedGame = true;
+						}
+
+						if(pGroup->m_GameGroup && ParsedGame)
+						{
+							if(pFrontTemp)
+								pGroup->AddLayer(pFrontTemp);
+							if(pTeleTemp)
+								pGroup->AddLayer(pTeleTemp);
+							if(pSpeedupTemp)
+								pGroup->AddLayer(pSpeedupTemp);
+							pSpeedupTemp = pTeleTemp = pFrontTemp = 0;
+						}
 						DataFile.UnloadData(pTilemapItem->m_Data);
 						
 						if(pTiles->m_Tele)
@@ -641,7 +1151,13 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 						{
 							void *pFrontData = DataFile.GetData(pTilemapItem->m_Front);
 							mem_copy(((CLayerFront*)pTiles)->m_pTiles, pFrontData, pTiles->m_Width*pTiles->m_Height*sizeof(CTile));
-
+							/*
+							 * for(int i = 0; i < pTiles->m_Width*pTiles->m_Height; i++)
+							 * {
+							 * 	if(pTiles->m_pTiles[i].m_Index)
+							 * 		;
+							 * }
+							 */
 							DataFile.UnloadData(pTilemapItem->m_Front);
 						}
 						else if(pTiles->m_Switch)
@@ -678,7 +1194,6 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 									((CLayerTiles*)pTiles)->m_pTiles[i].m_Index = ((CLayerSwitch*)pTiles)->m_pSwitchTile[i].m_Type;
 									((CLayerTiles*)pTiles)->m_pTiles[i].m_Flags = ((CLayerSwitch*)pTiles)->m_pSwitchTile[i].m_Flags;
 								}
-
 							}
 							DataFile.UnloadData(pTilemapItem->m_Switch);
 						}
