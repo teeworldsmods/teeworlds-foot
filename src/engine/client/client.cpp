@@ -1842,8 +1842,8 @@ void CClient::Run()
 	//
 	m_FpsGraph.Init(0.0f, 200.0f);
 
-	// never start with the editor
-	g_Config.m_ClEditor = 0;
+	// start with the editor
+	g_Config.m_ClEditor = 1;
 
 	Input()->MouseModeRelative();
 
@@ -1914,7 +1914,7 @@ void CClient::Run()
 
 		if(Input()->KeyPressed(KEY_LCTRL) && Input()->KeyPressed(KEY_LSHIFT) && Input()->KeyDown('e'))
 		{
-			g_Config.m_ClEditor = g_Config.m_ClEditor^1;
+			g_Config.m_ClEditor = 1;
 			Input()->MouseModeRelative();
 		}
 
