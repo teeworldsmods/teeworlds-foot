@@ -512,7 +512,7 @@ void CGameContext::OnClientEnter(int ClientID)
 	m_apPlayers[ClientID]->Respawn();
 	char aBuf[512];
 
-	if(str_comp(g_Config.m_SvGametype, "foot") == 0 || str_comp(g_Config.m_SvGametype, "korace") == 0)
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0)
 		str_format(aBuf, sizeof(aBuf), "'%s' entered the server", Server()->ClientName(ClientID));
 	else
 		str_format(aBuf, sizeof(aBuf), "'%s' entered and joined the %s", Server()->ClientName(ClientID), m_pController->GetTeamName(m_apPlayers[ClientID]->GetTeam()));
@@ -528,7 +528,7 @@ void CGameContext::OnClientEnter(int ClientID)
 void CGameContext::OnClientConnected(int ClientID)
 {
 	// Check which team the player should be on
-	if(str_comp(g_Config.m_SvGametype, "foot") == 0 || str_comp(g_Config.m_SvGametype, "korace") == 0){
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0){
 		const int StartTeam = TEAM_SPECTATORS;
 		m_apPlayers[ClientID] = new(ClientID) CPlayer(this, ClientID, StartTeam); }
 	else{
@@ -562,11 +562,6 @@ void CGameContext::OnClientConnected(int ClientID)
 	{
 		str_format(aBuf, sizeof(aBuf), "Teefoot v%s by Bass \n\n\n How to play? \n\n It's simply,\n get the Ball and shot Goals!\n\n If an enemy got the Ball you can  steel him the ball by hammering  him \n\n\n That all you have to know! \n\n\n\n Have fun with playing! \n\n\n\n\n Server Hosted by %s", FOOT_VERSION, SERVER_HOSTER);
 		Msg.m_pMessage = aBuf;	
-	}
-	else if(str_comp(g_Config.m_SvGametype, "korace") == 0)
-	{
-		str_format(aBuf, sizeof(aBuf), "[K.o]Race v%s by Bass \n\n\n How to play? \n\n\n It's just so easy.\n\n Every round, \n the last one gets out!\n\n\n You only can join \n the game at Warmup\n\n\n\n Have fun at Playing! \n\n\n\n\n Server Hosted by %s", KORACE_VERSION, SERVER_HOSTER);
-		Msg.m_pMessage = aBuf;
 	}
 	else
 		Msg.m_pMessage = g_Config.m_SvMotd;
@@ -813,18 +808,6 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			str_format(aBuf, sizeof(aBuf), "Time to wait before changing team: %02d:%02d", TimeLeft/60, TimeLeft%60);
 			SendBroadcast(aBuf, ClientID);
 			return;
-		}
-
-		if(str_comp(g_Config.m_SvGametype, "korace") == 0)  
-		{
-			if(m_pController->bRoundBegan)
-			{
-				if(pMsg->m_Team != TEAM_SPECTATORS && pPlayer->GetTeam() == TEAM_SPECTATORS)
-				{
-					SendChatTarget(ClientID, "The round's running, please join next round until warmup!");
-					return;
-				}
-			}
 		}
 
 		// Switch team on given client and kill/respawn him

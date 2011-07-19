@@ -62,7 +62,7 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 		m_LastWeapon = WEAPON_HAMMER;
 		//SetWeapon(WEAPON_HAMMER);
 	}
-	else if(str_comp(g_Config.m_SvGametype, "korace" ))
+	else
 	{
 		m_ActiveWeapon = WEAPON_GUN;
 		m_LastWeapon = WEAPON_GUN;
@@ -594,54 +594,6 @@ void CCharacter::Tick()
 			this->m_Armor -= 1;
 	}
 
-	
-	if(str_comp(g_Config.m_SvGametype, "korace") == 0 && GameServer()->m_pController->bRoundBegan)
-	{
-		//use checkpoints to get sure that the player don't runs into the counter again and again.
-		if( ( GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER) && m_pPlayer->m_Score == 0)
-		{
-			CheckedPoint = 0;
-			GameServer()->m_pController->EnterNextRound(m_pPlayer->GetCID());
-			GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_LONG);
-		}
-		else if( ( GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER) && CheckedPoint == 3 )
-		{
-			CheckedPoint = 0;
-			GameServer()->m_pController->EnterNextRound(m_pPlayer->GetCID());
-			GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_LONG);
-		}
-		else if( (GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK1 ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK1 ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK1 ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK1) && CheckedPoint == 0 )
-		{
-			//checkpoint 1 arrived
-			CheckedPoint = 1;
-		}
-		else if( (GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK2 ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK2 ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK2 ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK2)  && CheckedPoint == 1 )
-		{
-			//checkpoint 2 arrived
-			CheckedPoint = 2;
-		}
-		else if( (GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK3 ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK3 ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK3 ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK3) && CheckedPoint == 2 )
-		{
-			//checkpoint 3 arrived
-			CheckedPoint = 3;
-		}
-	}
-
 	if(m_pPlayer->m_ForceBalanced)
 	{
 		char Buf[128];
@@ -780,11 +732,6 @@ void CCharacter::Die(int Killer, int Weapon)
 			HoldBallTick = 1;
 			FireWeapon();
 		}
-	}
-	if(str_comp(g_Config.m_SvGametype, "korace") == 0)
-	{
-		CheckedPoint = 0;
-		GameServer()->CreateExplosion(m_Pos, -1, -1, true);
 	}
 
 	// we got to wait 0.5 secs before respawning

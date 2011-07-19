@@ -7,7 +7,6 @@
 #define GAME_NETVERSION "0.6 " GAME_NETVERSION_HASH
 //versions of the mods
 #define FOOT_VERSION "1.0"
-#define KORACE_VERSION "1.0"
 //define server hoster's name
 #define SERVER_HOSTER "Unlimreal"
 

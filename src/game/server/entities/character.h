@@ -69,8 +69,6 @@ public:
 
 	//Foot
 	void PlayerGetBall();
-	//korace
-	unsigned int CheckedPoint;
 	
 private:
 	// player controlling this character

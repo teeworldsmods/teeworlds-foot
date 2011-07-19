@@ -215,8 +215,6 @@ void IGameController::StartRound()
 	m_GameOverTick = -1;
 	GameServer()->m_World.m_Paused = false;
 	//if a player stays in the goal before respawning..
-	//if(str_comp(g_Config.m_SvGametype, "korace") == 0)
-	//	ResetAllScores();
 
 	m_aTeamscore[TEAM_RED] = 0;
 	m_aTeamscore[TEAM_BLUE] = 0;
@@ -224,9 +222,6 @@ void IGameController::StartRound()
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "start round type='%s' teamplay='%d'", m_pGameType, m_GameFlags&GAMEFLAG_TEAMS);
 	GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
-	//start round bool
-	if(str_comp(g_Config.m_SvGametype, "korace") == 0)
-		bRoundBegan = true;
 }
 
 void IGameController::ChangeMap(const char *pToMap)
@@ -343,10 +338,6 @@ void IGameController::OnPlayerInfoChange(class CPlayer *pP)
 
 int IGameController::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
-	if(str_comp(g_Config.m_SvGametype, "korace" ) == 0 )
-	{
-		pVictim->GetPlayer()->m_Score = 0;
-	}
 	// do scoreing
 	if(!pKiller || Weapon == WEAPON_GAME)
 		return 0;
@@ -370,12 +361,7 @@ void IGameController::OnCharacterSpawn(class CCharacter *pChr)
 	pChr->IncreaseHealth(10);
 
 	// give default weapons
-	if(str_comp(g_Config.m_SvGametype, "korace") == 0)
-	{
-		pChr->GiveWeapon(WEAPON_GUN, 10);
-		pChr->SetWeapon(WEAPON_GUN);
-	}
-	else if(str_comp(g_Config.m_SvGametype, "foot") == 0)
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0)
 	{
 		
 			pChr->GiveWeapon(WEAPON_HAMMER, -1);
@@ -433,44 +419,21 @@ bool IGameController::CanBeMovedOnBalance(int ClientID)
 void IGameController::Tick()
 {
 	// do warmup
-	if(str_comp(g_Config.m_SvGametype, "korace") == 0) 
+	if(m_Warmup)
 	{
-		if(m_Warmup && PlayersInGame >= 2)
-		{
-			m_Warmup--;
-			if(!m_Warmup)
-			{
-				StartRound();
-			}
-		}
-	}
-	else
-	{
-		if(m_Warmup)
-		{
-			m_Warmup--;
-			if(!m_Warmup)
-				StartRound();
-		}
+		m_Warmup--;
+		if(!m_Warmup)
+			StartRound();
 	}
 
 	if(m_GameOverTick != -1)
 	{
 		int Secounds = 10;
-		if(str_comp(g_Config.m_SvGametype, "korace") == 0)
-			Secounds = 5;
 		// game over.. wait for restart
 		if(Server()->Tick() > m_GameOverTick+Server()->TickSpeed()*Secounds)
 		{
 			CycleMap();
-			if(str_comp(g_Config.m_SvGametype, "korace") == 0)
-			{
-				WaitForNextRound();
-			}
-			else
-			{
-				StartRound();
-			}
+			StartRound();
 			m_RoundCount++;
 		}
 	}
