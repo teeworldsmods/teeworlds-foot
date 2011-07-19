@@ -13,7 +13,6 @@
 #include "gamemodes/tdm.h"
 #include "gamemodes/ctf.h"
 #include "gamemodes/foot.h"
-#include "gamemodes/korace.h"
 
 #include <game/version.h>
 
@@ -1384,8 +1383,6 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	// select gametype
 	if(str_comp(g_Config.m_SvGametype, "foot") == 0)
 		m_pController = new CGameControllerFOOT(this);
-	else if(str_comp(g_Config.m_SvGametype, "korace") == 0)
-		m_pController = new CGameControllerKORACE(this);
 	else if(str_comp(g_Config.m_SvGametype, "dm") == 0)
 		m_pController = new CGameControllerDM(this);
 	else if(str_comp(g_Config.m_SvGametype, "ctf") == 0)
