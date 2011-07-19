@@ -31,6 +31,7 @@ struct CSample
 	int m_Channels;
 	int m_LoopStart;
 	int m_LoopEnd;
+	int m_PausedAt;
 };
 
 struct CChannel
@@ -54,7 +55,6 @@ static CVoice m_aVoices[NUM_VOICES] = { {0} };
 static CChannel m_aChannels[NUM_CHANNELS] = { {255, 0} };
 
 static LOCK m_SoundLock = 0;
-static int m_SoundEnabled = 0;
 
 static int m_CenterX = 0;
 static int m_CenterY = 0;
@@ -157,8 +157,12 @@ static void Mix(short *pFinalOut, unsigned Frames)
 			
 			// free voice if not used any more
 			if(v->m_Tick == v->m_pSample->m_NumFrames)
-				v->m_pSample = 0;
-			
+			{
+				if(v->m_Flags&ISound::FLAG_LOOP)
+					v->m_Tick = 0;
+				else
+					v->m_pSample = 0;
+			}
 		}
 	}
 	
@@ -194,6 +198,7 @@ static void SdlCallback(void *pUnused, Uint8 *pStream, int Len)
 
 int CSound::Init()
 {
+	m_SoundEnabled = 0;
 	m_pGraphics = Kernel()->RequestInterface<IEngineGraphics>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
 	
@@ -389,6 +394,7 @@ int CSound::LoadWV(const char *pFilename)
 		pSample->m_NumFrames = m_aSamples;
 		pSample->m_LoopStart = -1;
 		pSample->m_LoopEnd = -1;
+		pSample->m_PausedAt = 0;
 	}
 	else
 	{
@@ -410,7 +416,7 @@ void CSound::SetListenerPos(float x, float y)
 	m_CenterX = (int)x;
 	m_CenterY = (int)y;
 }
-	
+
 
 void CSound::SetChannel(int ChannelID, float Vol, float Pan)
 {
@@ -442,7 +448,10 @@ int CSound::Play(int ChannelID, int SampleID, int Flags, float x, float y)
 	{
 		m_aVoices[VoiceID].m_pSample = &m_aSamples[SampleID];
 		m_aVoices[VoiceID].m_pChannel = &m_aChannels[ChannelID];
-		m_aVoices[VoiceID].m_Tick = 0;
+		if(Flags & FLAG_LOOP)
+			m_aVoices[VoiceID].m_Tick = m_aSamples[SampleID].m_PausedAt;
+		else
+			m_aVoices[VoiceID].m_Tick = 0;
 		m_aVoices[VoiceID].m_Vol = 255;
 		m_aVoices[VoiceID].m_Flags = Flags;
 		m_aVoices[VoiceID].m_X = (int)x;
@@ -463,11 +472,22 @@ int CSound::Play(int ChannelID, int SampleID, int Flags)
 	return Play(ChannelID, SampleID, Flags, 0, 0);
 }
 
-void CSound::Stop(int VoiceID)
+void CSound::Stop(int SampleID)
 {
 	// TODO: a nice fade out
 	lock_wait(m_SoundLock);
-	m_aVoices[VoiceID].m_pSample = 0;
+	CSample *pSample = &m_aSamples[SampleID];
+	for(int i = 0; i < NUM_VOICES; i++)
+	{
+		if(m_aVoices[i].m_pSample == pSample)
+		{
+			if(m_aVoices[i].m_Flags & FLAG_LOOP)
+				m_aVoices[i].m_pSample->m_PausedAt = m_aVoices[i].m_Tick;
+			else
+				m_aVoices[i].m_pSample->m_PausedAt = 0;
+			m_aVoices[i].m_pSample = 0;
+		}
+	}
 	lock_release(m_SoundLock);
 }
 
@@ -477,6 +497,13 @@ void CSound::StopAll()
 	lock_wait(m_SoundLock);
 	for(int i = 0; i < NUM_VOICES; i++)
 	{
+		if(m_aVoices[i].m_pSample)
+		{
+			if(m_aVoices[i].m_Flags & FLAG_LOOP)
+				m_aVoices[i].m_pSample->m_PausedAt = m_aVoices[i].m_Tick;
+			else
+				m_aVoices[i].m_pSample->m_PausedAt = 0;
+		}
 		m_aVoices[i].m_pSample = 0;
 	}
 	lock_release(m_SoundLock);

@@ -21,17 +21,17 @@ class CSnapIDPool
 	};
 
 	CID m_aIDs[MAX_IDS];
-		
+
 	int m_FirstFree;
 	int m_FirstTimed;
 	int m_LastTimed;
 	int m_Usage;
 	int m_InUsage;
-	
-public:	
+
+public:
 
 	CSnapIDPool();
-	
+
 	void Reset();
 	void RemoveFirstTimeout();
 	int NewID();
@@ -49,10 +49,19 @@ public:
 	class IConsole *Console() { return m_pConsole; }
 	class IStorage *Storage() { return m_pStorage; }
 
+	enum
+	{
+		AUTHED_NO=0,
+		AUTHED_MOD,
+		AUTHED_ADMIN,
+
+		MAX_RCONCMD_SEND=16,
+	};
+
 	class CClient
 	{
 	public:
-	
+
 		enum
 		{
 			STATE_EMPTY = 0,
@@ -60,49 +69,51 @@ public:
 			STATE_CONNECTING,
 			STATE_READY,
 			STATE_INGAME,
-			
+
 			SNAPRATE_INIT=0,
 			SNAPRATE_FULL,
 			SNAPRATE_RECOVER
 		};
-	
+
 		class CInput
 		{
 		public:
 			int m_aData[MAX_INPUT_SIZE];
 			int m_GameTick; // the tick that was chosen for the input
 		};
-	
+
 		// connection state info
 		int m_State;
 		int m_Latency;
 		int m_SnapRate;
-		
+
 		int m_LastAckedSnapshot;
 		int m_LastInputTick;
 		CSnapshotStorage m_Snapshots;
-		
+
 		CInput m_LatestInput;
 		CInput m_aInputs[200]; // TODO: handle input better
 		int m_CurrentInput;
-		
+
 		char m_aName[MAX_NAME_LENGTH];
 		char m_aClan[MAX_CLAN_LENGTH];
 		int m_Country;
 		int m_Score;
 		int m_Authed;
 		int m_AuthTries;
-		
+
+		const IConsole::CCommandInfo *m_pRconCmdToSend;
+
 		void Reset();
 	};
-	
+
 	CClient m_aClients[MAX_CLIENTS];
 
 	CSnapshotDelta m_SnapshotDelta;
 	CSnapshotBuilder m_SnapshotBuilder;
 	CSnapIDPool m_IDPool;
 	CNetServer m_NetServer;
-	
+
 	IEngineMap *m_pMap;
 
 	int64 m_GameStartTime;
@@ -110,6 +121,7 @@ public:
 	int m_RunServer;
 	int m_MapReload;
 	int m_RconClientID;
+	int m_RconAuthLevel;
 
 	int64 m_Lastheartbeat;
 	//static NETADDR4 master_server;
@@ -117,14 +129,14 @@ public:
 	char m_aCurrentMap[64];
 	unsigned m_CurrentMapCrc;
 	unsigned char *m_pCurrentMapData;
-	int m_CurrentMapSize;	
-	
+	int m_CurrentMapSize;
+
 	CDemoRecorder m_DemoRecorder;
 	CRegister m_Register;
 	CMapChecker m_MapChecker;
-	
+
 	CServer();
-	
+
 	int TrySetClientName(int ClientID, const char *pName);
 
 	virtual void SetClientName(int ClientID, const char *pName);
@@ -148,8 +160,6 @@ public:
 	int ClientCountry(int ClientID);
 	bool ClientIngame(int ClientID);
 
-	int *LatestInput(int ClientID, int *size);
-
 	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int ClientID);
 	int SendMsgEx(CMsgPacker *pMsg, int Flags, int ClientID, bool System);
 
@@ -162,15 +172,19 @@ public:
 	void SendConnectionReady(int ClientID);
 	void SendRconLine(int ClientID, const char *pLine);
 	static void SendRconLineAuthed(const char *pLine, void *pUser);
-	
+
+	void SendRconCmdAdd(const IConsole::CCommandInfo *pCommandInfo, int ClientID);
+	void SendRconCmdRem(const IConsole::CCommandInfo *pCommandInfo, int ClientID);
+	void UpdateClientRconCommands();
+
 	void ProcessClientPacket(CNetChunk *pPacket);
-		
+
 	void SendServerInfo(NETADDR *pAddr, int Token);
 	void UpdateServerInfo();
 
 	int BanAdd(NETADDR Addr, int Seconds, const char *pReason);
 	int BanRemove(NETADDR Addr);
-		
+
 
 	void PumpNetwork();
 
@@ -191,10 +205,11 @@ public:
 	static void ConMapReload(IConsole::IResult *pResult, void *pUser);
 	static void ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainMaxclientsperipUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+	static void ConchainModCommandUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
 	void RegisterCommands();
-	
-	
+
+
 	virtual int SnapNewID();
 	virtual void SnapFreeID(int ID);
 	virtual void *SnapNewItem(int Type, int ID, int Size);

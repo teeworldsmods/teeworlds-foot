@@ -16,8 +16,6 @@ CGameControllerFOOT::CGameControllerFOOT(class CGameContext *pGameServer)
 
 void CGameControllerFOOT::Tick()
 {
-	DoTeamScoreWincheck();
-	
 	IGameController::Tick();
 }
 

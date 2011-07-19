@@ -1,53 +1,86 @@
 
 ##### language indices #####
 
-#bosnian
-#== Bosanski
+bosnian
+== Bosanski
+== 70
+
+brazilian_portuguese
+== Português brasileiro
+== 76
 
 bulgarian
 == Български
+== 100
 
 czech
 == Česky
+== 203
+
+danish
+== Dansk
+== 208
 
 dutch
 == Nederlands
+== 528
 
 finnish
 == Suomi
+== 246
 
 french
 == Français
+== 250
 
 german
 == Deutsch
+== 276
 
-#italian
-#== Italiano
+italian
+== Italiano
+== 380
 
-#polish
-#== Polski
+norwegian
+== Norsk
+== 578
 
-#portuguese
-#== Português
+polish
+== Polski
+== 616
 
-#romanian
-#== Română
+portuguese
+== Português
+== 620
 
-#russian
-#== Русский
+romanian
+== Română
+== 642
 
-#serbian
-#== Srpski
+russian
+== Русский
+== 643
+
+serbian
+== Srpski
+== 688
 
 slovak
 == Slovensky
+== 703
 
 spanish
 == Español
+== 724
 
 swedish
 == Svenska
+== 752
 
-#ukrainian
-#== Українська
+turkish
+== Türkçe
+== 792
+
+ukrainian
+== Українська
+== 804

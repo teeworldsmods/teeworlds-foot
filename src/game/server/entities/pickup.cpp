@@ -14,7 +14,7 @@ CPickup::CPickup(CGameWorld *pGameWorld, int Type, int SubType)
 	m_ProximityRadius = PickupPhysSize;
 
 	Reset();
-	
+
 	GameWorld()->InsertEntity(this);
 }
 
@@ -75,7 +75,7 @@ void CPickup::Tick()
 					RespawnTime = g_pData->m_aPickups[m_Type].m_Respawntime;
 				}
 				break;
-				
+
 			case POWERUP_ARMOR:
 				if(pChr->IncreaseArmor(1))
 				{
@@ -113,7 +113,7 @@ void CPickup::Tick()
 					}
 				}
 				break;
-				
+
 			case POWERUP_NINJA:
 				{
 					// activate ninja on target player
@@ -131,7 +131,7 @@ void CPickup::Tick()
 					pChr->SetEmote(EMOTE_ANGRY, Server()->Tick() + 1200 * Server()->TickSpeed() / 1000);
 					break;
 				}
-				
+
 			default:
 				break;
 		};

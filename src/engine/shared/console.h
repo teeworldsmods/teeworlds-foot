@@ -13,10 +13,15 @@ class CConsole : public IConsole
 	public:
 		CCommand *m_pNext;
 		int m_Flags;
+		bool m_Temp;
 		FCommandCallback m_pfnCallback;
 		void *m_pUserData;
+
+		virtual const CCommandInfo *NextCommandInfo(int AccessLevel, int FlagMask) const;
+
+		void SetAccessLevel(int AccessLevel) { m_AccessLevel = clamp(AccessLevel, (int)(ACCESS_LEVEL_ADMIN), (int)(ACCESS_LEVEL_MOD)); }
 	};
-		
+
 
 	class CChain
 	{
@@ -25,8 +30,8 @@ class CConsole : public IConsole
 		FCommandCallback m_pfnCallback;
 		void *m_pCallbackUserData;
 		void *m_pUserData;
-	};	
-	
+	};
+
 	int m_FlagMask;
 	bool m_StoreCommands;
 	const char *m_paStrokeStr[2];
@@ -36,34 +41,40 @@ class CConsole : public IConsole
 	{
 	public:
 		const char *m_pFilename;
-		struct CExecFile *m_pPrev;
+		CExecFile *m_pPrev;
 	};
-	
+
 	CExecFile *m_pFirstExec;
 	class IStorage *m_pStorage;
+	int m_AccessLevel;
+
+	CCommand *m_pRecycleList;
+	CHeap m_TempCommands;
 
 	static void Con_Chain(IResult *pResult, void *pUserData);
 	static void Con_Echo(IResult *pResult, void *pUserData);
 	static void Con_Exec(IResult *pResult, void *pUserData);
+	static void ConModCommandAccess(IResult *pResult, void *pUser);
+	static void ConModCommandStatus(IConsole::IResult *pResult, void *pUser);
 
 	void ExecuteFileRecurse(const char *pFilename);
 	void ExecuteLineStroked(int Stroke, const char *pStr);
-	
+
 	FPrintCallback m_pfnPrintCallback;
 	void *m_pPrintCallbackUserdata;
 
 	enum
 	{
-		CONSOLE_MAX_STR_LENGTH  = 1024,
+		CONSOLE_MAX_STR_LENGTH = 1024,
 		MAX_PARTS = (CONSOLE_MAX_STR_LENGTH+1)/2
 	};
-	
+
 	class CResult : public IResult
 	{
 	public:
 		char m_aStringStorage[CONSOLE_MAX_STR_LENGTH+1];
 		char *m_pArgsStart;
-		
+
 		const char *m_pCommand;
 		const char *m_apArgs[MAX_PARTS];
 
@@ -89,7 +100,7 @@ class CConsole : public IConsole
 			}
 			return *this;
 		}
-		
+
 		void AddArgument(const char *pArg)
 		{
 			m_apArgs[m_NumArgs++] = pArg;
@@ -99,7 +110,7 @@ class CConsole : public IConsole
 		virtual int GetInteger(unsigned Index);
 		virtual float GetFloat(unsigned Index);
 	};
-	
+
 	int ParseStart(CResult *pResult, const char *pString, int Length);
 	int ParseArgs(CResult *pResult, const char *pFormat);
 
@@ -134,25 +145,32 @@ class CConsole : public IConsole
 		}
 	} m_ExecutionQueue;
 
+	void AddCommandSorted(CCommand *pCommand);
 	CCommand *FindCommand(const char *pName, int FlagMask);
 
 public:
 	CConsole(int FlagMask);
 
-	virtual CCommandInfo *GetCommandInfo(const char *pName, int FlagMask);
-	virtual void PossibleCommands(const char *pStr, int FlagMask, FPossibleCallback pfnCallback, void *pUser) ;
+	virtual const CCommandInfo *FirstCommandInfo(int AccessLevel, int Flagmask) const;
+	virtual const CCommandInfo *GetCommandInfo(const char *pName, int FlagMask, bool Temp);
+	virtual void PossibleCommands(const char *pStr, int FlagMask, bool Temp, FPossibleCallback pfnCallback, void *pUser);
 
 	virtual void ParseArguments(int NumArgs, const char **ppArguments);
 	virtual void Register(const char *pName, const char *pParams, int Flags, FCommandCallback pfnFunc, void *pUser, const char *pHelp);
+	virtual void RegisterTemp(const char *pName, const char *pParams, int Flags, const char *pHelp);
+	virtual void DeregisterTemp(const char *pName);
+	virtual void DeregisterTempAll();
 	virtual void Chain(const char *pName, FChainCommandCallback pfnChainFunc, void *pUser);
 	virtual void StoreCommands(bool Store);
-	
+
 	virtual bool LineIsValid(const char *pStr);
 	virtual void ExecuteLine(const char *pStr);
 	virtual void ExecuteFile(const char *pFilename);
 
 	virtual void RegisterPrintCallback(FPrintCallback pfnPrintCallback, void *pUserData);
 	virtual void Print(int Level, const char *pFrom, const char *pStr);
+
+	void SetAccessLevel(int AccessLevel) { m_AccessLevel = clamp(AccessLevel, (int)(ACCESS_LEVEL_ADMIN), (int)(ACCESS_LEVEL_MOD)); }
 };
 
 #endif

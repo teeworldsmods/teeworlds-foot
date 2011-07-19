@@ -15,7 +15,7 @@ public:
 	virtual void Reset();
 	virtual void Tick();
 	virtual void Snap(int SnappingClient);
-	
+
 	unsigned short colbx;
 	unsigned short colby;
 
