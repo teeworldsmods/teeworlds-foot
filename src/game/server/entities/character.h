@@ -26,6 +26,8 @@ public:
 
 	CCharacter(CGameWorld *pWorld);
 	
+	float HoldBallTick;
+
 	virtual void Reset();
 	virtual void Destroy();
 	virtual void Tick();
@@ -48,6 +50,8 @@ public:
 	void Die(int Killer, int Weapon);
 	bool TakeDamage(vec2 Force, int Dmg, int From, int Weapon);	
 
+	bool LoseBall();
+
 	bool Spawn(class CPlayer *pPlayer, vec2 Pos);
 	bool Remove();
 	
@@ -61,6 +65,11 @@ public:
 	
 	bool IsAlive() const { return m_Alive; }
 	class CPlayer *GetPlayer() { return m_pPlayer; }
+
+	//Foot
+	void PlayerGetBall();
+	//korace
+	unsigned int CheckedPoint;
 	
 private:
 	// player controlling this character

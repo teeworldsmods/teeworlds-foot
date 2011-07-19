@@ -49,7 +49,7 @@ public:
 	int m_SpectatorID;
 
 	bool m_IsReady;
-	
+
 	//
 	int m_Vote;
 	int m_VotePos;

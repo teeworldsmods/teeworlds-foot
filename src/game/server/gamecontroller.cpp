@@ -223,7 +223,7 @@ void IGameController::EndRound()
 {
 	if(m_Warmup) // game can't end when we are running warmup
 		return;
-		
+
 	GameServer()->m_World.m_Paused = true;
 	m_GameOverTick = Server()->Tick();
 	m_SuddenDeath = 0;
@@ -262,12 +262,19 @@ void IGameController::StartRound()
 	m_SuddenDeath = 0;
 	m_GameOverTick = -1;
 	GameServer()->m_World.m_Paused = false;
+	//if a player stays in the goal before respawning..
+	//if(str_comp(g_Config.m_SvGametype, "korace") == 0)
+	//	ResetAllScores();
+
 	m_aTeamscore[TEAM_RED] = 0;
 	m_aTeamscore[TEAM_BLUE] = 0;
 	m_ForceBalanced = false;
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "start round type='%s' teamplay='%d'", m_pGameType, m_GameFlags&GAMEFLAG_TEAMS);
 	GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
+	//start round bool
+	if(str_comp(g_Config.m_SvGametype, "korace") == 0)
+		bRoundBegan = true;
 }
 
 void IGameController::ChangeMap(const char *pToMap)
@@ -384,6 +391,10 @@ void IGameController::OnPlayerInfoChange(class CPlayer *pP)
 
 int IGameController::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
+	if(str_comp(g_Config.m_SvGametype, "korace" ) == 0 )
+	{
+		pVictim->GetPlayer()->m_Score = 0;
+	}
 	// do scoreing
 	if(!pKiller || Weapon == WEAPON_GAME)
 		return 0;
@@ -407,8 +418,23 @@ void IGameController::OnCharacterSpawn(class CCharacter *pChr)
 	pChr->IncreaseHealth(10);
 	
 	// give default weapons
-	pChr->GiveWeapon(WEAPON_HAMMER, -1);
-	pChr->GiveWeapon(WEAPON_GUN, 10);
+	if(str_comp(g_Config.m_SvGametype, "korace") == 0)
+	{
+		pChr->GiveWeapon(WEAPON_GUN, 10);
+		pChr->SetWeapon(WEAPON_GUN);
+	}
+	else if(str_comp(g_Config.m_SvGametype, "foot") == 0)
+	{
+		
+			pChr->GiveWeapon(WEAPON_HAMMER, -1);
+			pChr->SetWeapon(WEAPON_HAMMER);
+	}
+	else
+	{
+		pChr->GiveWeapon(WEAPON_HAMMER, -1);
+		pChr->GiveWeapon(WEAPON_GUN, 10);
+	}
+	
 }
 
 void IGameController::DoWarmup(int Seconds)
@@ -455,20 +481,44 @@ bool IGameController::CanBeMovedOnBalance(int ClientID)
 void IGameController::Tick()
 {
 	// do warmup
-	if(m_Warmup)
+	if(str_comp(g_Config.m_SvGametype, "korace") == 0) 
 	{
-		m_Warmup--;
-		if(!m_Warmup)
-			StartRound();
+		if(m_Warmup && PlayersInGame >= 2)
+		{
+			m_Warmup--;
+			if(!m_Warmup)
+			{
+				StartRound();
+			}
+		}
 	}
-	
+	else
+	{
+		if(m_Warmup)
+		{
+			m_Warmup--;
+			if(!m_Warmup)
+				StartRound();
+		}
+	}
+
 	if(m_GameOverTick != -1)
 	{
+		int Secounds = 10;
+		if(str_comp(g_Config.m_SvGametype, "korace") == 0)
+			Secounds = 5;
 		// game over.. wait for restart
-		if(Server()->Tick() > m_GameOverTick+Server()->TickSpeed()*10)
+		if(Server()->Tick() > m_GameOverTick+Server()->TickSpeed()*Secounds)
 		{
 			CycleMap();
-			StartRound();
+			if(str_comp(g_Config.m_SvGametype, "korace") == 0)
+			{
+				WaitForNextRound();
+			}
+			else
+			{
+				StartRound();
+			}
 			m_RoundCount++;
 		}
 	}
@@ -762,4 +812,69 @@ int IGameController::ClampTeam(int Team)
 	if(IsTeamplay())
 		return Team&1;
 	return 0;
+}
+
+int IGameController::OnGoalRed(int Owner)
+{
+	CCharacter* Character = GameServer()->m_apPlayers[Owner]->GetCharacter();
+	if(!Character)
+		return 0;
+
+	CPlayer* Player = Character->GetPlayer();
+
+	if(Player->GetTeam() == 0)
+		Player->m_Score--;
+	else if(Player->GetTeam() == 1)
+		Player->m_Score++;
+
+	GameServer()->m_World.m_ResetAtGoal = true;
+
+	return 0;
+}
+
+int IGameController::OnGoalBlue(int Owner)
+{
+	CCharacter* Character = GameServer()->m_apPlayers[Owner]->GetCharacter();
+	if(!Character)
+		return 0;
+
+	CPlayer* Player = Character->GetPlayer();
+
+	if(Player->GetTeam() == 1)
+		Player->m_Score--;
+	else if(Player->GetTeam() == 0)
+		Player->m_Score++;
+
+	GameServer()->m_World.m_ResetAtGoal = true;
+
+	return 0;
+}
+
+void IGameController::RespawnAfterGoal()
+{
+	for(int i = 0; i < MAX_CLIENTS; i++)
+	{
+		if(GameServer()->m_apPlayers[i])
+		{	
+			//GameServer()->m_apPlayers[i]->Respawn();
+			GameServer()->m_apPlayers[i]->m_RespawnTick = Server()->Tick() + 2 *Server()->TickSpeed();
+		}
+	}
+
+	BallSpawning = Server()->Tick() + 5 * Server()->TickSpeed();
+}
+
+void IGameController::EnterNextRound(int PlayersID)
+{
+	GameServer()->m_apPlayers[PlayersID]->m_Score += 1;
+}
+
+void IGameController::WaitForNextRound()
+{
+	ResetGame();
+	
+	m_SuddenDeath = 0;
+	m_GameOverTick = -1;
+	GameServer()->m_World.m_Paused = false;
+	DoWarmup(10);
 }

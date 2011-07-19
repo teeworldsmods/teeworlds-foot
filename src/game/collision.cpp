@@ -45,6 +45,24 @@ void CCollision::Init(class CLayers *pLayers)
 		case TILE_NOHOOK:
 			m_pTiles[i].m_Index = COLFLAG_SOLID|COLFLAG_NOHOOK;
 			break;
+		case TILE_ROUNDCOUNTER:
+			m_pTiles[i].m_Index = COLFLAG_ROUNDCOUNTER;
+			break;
+		case TILE_CHECK1:
+			m_pTiles[i].m_Index = COLFLAG_CHECK1;
+			break;
+		case TILE_CHECK2:
+			m_pTiles[i].m_Index = COLFLAG_CHECK2;
+			break;
+		case TILE_CHECK3:
+			m_pTiles[i].m_Index = COLFLAG_CHECK3;
+			break;
+		case TILE_REDGOAL:
+			m_pTiles[i].m_Index = TILE_REDGOAL;
+			break;
+		case TILE_BLUEGOAL:
+			m_pTiles[i].m_Index = TILE_BLUEGOAL;
+			break;
 		default:
 			m_pTiles[i].m_Index = 0;
 		}
@@ -62,6 +80,64 @@ int CCollision::GetTile(int x, int y)
 bool CCollision::IsTileSolid(int x, int y)
 {
 	return GetTile(x, y)&COLFLAG_SOLID;
+}
+
+int CCollision::col_is_red(int x, int y)
+{
+	int Nx = x/32;
+	int Ny = y/32;
+	if(y<0 || Nx < 0 || Nx >= m_Width || Ny >= m_Height)
+		return 0;
+	return (int)m_pTiles[Ny*m_Width+Nx].m_Index == TILE_REDGOAL;
+}
+int CCollision::col_is_blue(int x, int y)
+{
+	int Nx = x/32;
+	int Ny = y/32;
+	if(y<0 || Nx < 0 || Nx >= m_Width || Ny >= m_Height)
+		return 0;
+	return (int)m_pTiles[Ny*m_Width+Nx].m_Index == TILE_BLUEGOAL;
+}
+/*
+int CCollision::OnRoundCounter(int x, int y)
+{
+	int Nx = x/32;
+	int Ny = x/32;
+	if(y<0 || Nx < 0 || Nx >= m_Width || Ny >= m_Height)
+		return 0;
+	return (int)m_pTiles[Ny*m_Width+Nx].m_Index == COLFLAG_ROUNDCOUNTER;
+}
+
+int CCollision::OnCheckPoint1(int x, int y)
+{
+	int Nx = x/32;
+	int Ny = x/32;
+	if(y<0 || Nx < 0 || Nx >= m_Width || Ny >= m_Height)
+		return 0;
+	return (int)m_pTiles[Ny*m_Width+Nx].m_Index == COLFLAG_CHECK1;
+}
+
+int CCollision::OnCheckPoint2(int x, int y)
+{
+	int Nx = x/32;
+	int Ny = x/32;
+	if(y<0 || Nx < 0 || Nx >= m_Width || Ny >= m_Height)
+		return 0;
+	return (int)m_pTiles[Ny*m_Width+Nx].m_Index == COLFLAG_CHECK2;
+}
+
+int CCollision::OnCheckPoint3(int x, int y)
+{
+	int Nx = x/32;
+	int Ny = x/32;
+	if(y<0 || Nx < 0 || Nx >= m_Width || Ny >= m_Height)
+		return 0;
+	return (int)m_pTiles[Ny*m_Width+Nx].m_Index == COLFLAG_CHECK3;
+}*/
+
+int CCollision::col_is_solid(int x, int y)
+{
+	return GetTile(x,y)&COLFLAG_SOLID;
 }
 
 // TODO: rewrite this smarter!

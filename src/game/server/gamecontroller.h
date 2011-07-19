@@ -126,6 +126,20 @@ public:
 	*/
 	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
 
+	virtual int OnGoalRed(int Goaler); //<- this are..
+	virtual int OnGoalBlue(int Goaler); //<- ..the goals
+
+	int BallSpawning;
+	int BallSpawnTick;
+	int pLostBall;
+
+	bool bNoDamage;
+	bool bRoundBegan;
+	int PlayersInGame;
+
+	void WaitForNextRound();
+
+	virtual void EnterNextRound(int PlayersID);
 
 	virtual void OnPlayerInfoChange(class CPlayer *pP);
 
@@ -143,6 +157,7 @@ public:
 	int ClampTeam(int Team);
 
 	virtual void PostReset();
+	virtual void RespawnAfterGoal();
 };
 
 #endif

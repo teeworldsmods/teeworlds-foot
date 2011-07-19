@@ -3,6 +3,8 @@
 #include <game/generated/protocol.h>
 #include <game/server/gamecontext.h>
 #include "pickup.h"
+#include <engine/shared/config.h>
+//#include <game/server/gamecontroller.h>
 
 CPickup::CPickup(CGameWorld *pGameWorld, int Type, int SubType)
 : CEntity(pGameWorld, CGameWorld::ENTTYPE_PICKUP)
@@ -18,6 +20,12 @@ CPickup::CPickup(CGameWorld *pGameWorld, int Type, int SubType)
 
 void CPickup::Reset()
 {
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0 && m_Type == POWERUP_WEAPON && m_Subtype == WEAPON_GRENADE)
+	{
+			GameServer()->m_pController->BallSpawning = Server()->Tick() + 5 * Server()->TickSpeed();
+			m_SpawnTick = 1;
+		return;
+	}
 	if (g_pData->m_aPickups[m_Type].m_Spawndelay > 0)
 		m_SpawnTick = Server()->Tick() + Server()->TickSpeed() * g_pData->m_aPickups[m_Type].m_Spawndelay;
 	else
@@ -26,8 +34,20 @@ void CPickup::Reset()
 
 void CPickup::Tick()
 {
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0 && m_Type == POWERUP_WEAPON && m_Subtype == WEAPON_GRENADE)
+	{
+		if(GameServer()->m_pController->BallSpawning && m_SpawnTick != -1 && GameServer()->m_pController->BallSpawning <= Server()->Tick())
+		{
+			// respawn
+			m_SpawnTick = -1;
+			if(m_Type == POWERUP_WEAPON)
+				GameServer()->CreateSound(m_Pos, SOUND_WEAPON_SPAWN);
+		}
+		else if( ( !GameServer()->m_pController->BallSpawning && m_SpawnTick == 0 ) || GameServer()->m_pController->BallSpawning  > Server()->Tick())
+			return;
+	}
 	// wait for respawn
-	if(m_SpawnTick > 0)
+	else if(m_SpawnTick > 0)
 	{
 		if(Server()->Tick() > m_SpawnTick)
 		{
@@ -67,7 +87,17 @@ void CPickup::Tick()
 			case POWERUP_WEAPON:
 				if(m_Subtype >= 0 && m_Subtype < NUM_WEAPONS)
 				{
-					if(pChr->GiveWeapon(m_Subtype, 10))
+					if(str_comp(g_Config.m_SvGametype, "foot") == 0 && m_Subtype == WEAPON_GRENADE)
+					{
+						//givebal
+						m_SpawnTick = 0;
+						if(m_Subtype == WEAPON_GRENADE)
+							GameServer()->CreateSound(m_Pos, SOUND_PICKUP_GRENADE);
+
+						GameServer()->m_pController->BallSpawning = 0;
+						pChr->PlayerGetBall();
+					}
+					else if(pChr->GiveWeapon(m_Subtype, 10))
 					{
 						RespawnTime = g_pData->m_aPickups[m_Type].m_Respawntime;
 
@@ -106,7 +136,7 @@ void CPickup::Tick()
 				break;
 		};
 
-		if(RespawnTime >= 0)
+		if(RespawnTime >= 0 && !(str_comp(g_Config.m_SvGametype, "foot") == 0 && m_Type == POWERUP_WEAPON))
 		{
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), "pickup player='%d:%s' item=%d/%d",

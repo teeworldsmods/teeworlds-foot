@@ -21,6 +21,10 @@ public:
 		COLFLAG_SOLID=1,
 		COLFLAG_DEATH=2,
 		COLFLAG_NOHOOK=4,
+		COLFLAG_ROUNDCOUNTER=8,
+		COLFLAG_CHECK1=16,
+		COLFLAG_CHECK2=32,
+		COLFLAG_CHECK3=64,
 	};
 
 	CCollision();
@@ -34,6 +38,15 @@ public:
 	void MovePoint(vec2 *pInoutPos, vec2 *pInoutVel, float Elasticity, int *pBounces);
 	void MoveBox(vec2 *pInoutPos, vec2 *pInoutVel, vec2 Size, float Elasticity);
 	bool TestBox(vec2 Pos, vec2 Size);
+
+	int OnRoundCounter(int x, int y);
+	int OnCheckPoint1(int x, int y);
+	int OnCheckPoint2(int x, int y);
+	int OnCheckPoint3(int x, int y);
+	int col_is_red(int x, int y);
+	int col_is_blue(int x, int y);
+	
+	int col_is_solid(int x, int y);
 };
 
 #endif

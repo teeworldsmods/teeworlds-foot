@@ -27,6 +27,7 @@ public:
 	};
 
 private:
+	friend class CGameControllerFOOT;
 	void Reset();
 	void RemoveEntities();
 
@@ -41,6 +42,7 @@ public:
 	class IServer *Server() { return m_pServer; }
 
 	bool m_ResetRequested;
+	bool m_ResetAtGoal;
 	bool m_Paused;
 	CWorldCore m_Core;
 	

@@ -12,7 +12,10 @@
 #include "gamemodes/dm.h"
 #include "gamemodes/tdm.h"
 #include "gamemodes/ctf.h"
-#include "gamemodes/mod.h"
+#include "gamemodes/foot.h"
+#include "gamemodes/korace.h"
+
+#include <game/version.h>
 
 enum
 {
@@ -508,7 +511,12 @@ void CGameContext::OnClientEnter(int ClientID)
 	//world.insert_entity(&players[client_id]);
 	m_apPlayers[ClientID]->Respawn();
 	char aBuf[512];
-	str_format(aBuf, sizeof(aBuf), "'%s' entered and joined the %s", Server()->ClientName(ClientID), m_pController->GetTeamName(m_apPlayers[ClientID]->GetTeam()));
+
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0 || str_comp(g_Config.m_SvGametype, "korace") == 0)
+		str_format(aBuf, sizeof(aBuf), "'%s' entered the server", Server()->ClientName(ClientID));
+	else
+		str_format(aBuf, sizeof(aBuf), "'%s' entered and joined the %s", Server()->ClientName(ClientID), m_pController->GetTeamName(m_apPlayers[ClientID]->GetTeam()));
+	
 	SendChat(-1, CGameContext::CHAT_ALL, aBuf); 
 
 	str_format(aBuf, sizeof(aBuf), "team_join player='%d:%s' team=%d", ClientID, Server()->ClientName(ClientID), m_apPlayers[ClientID]->GetTeam());
@@ -520,9 +528,13 @@ void CGameContext::OnClientEnter(int ClientID)
 void CGameContext::OnClientConnected(int ClientID)
 {
 	// Check which team the player should be on
-	const int StartTeam = g_Config.m_SvTournamentMode ? TEAM_SPECTATORS : m_pController->GetAutoTeam(ClientID);
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0 || str_comp(g_Config.m_SvGametype, "korace") == 0){
+		const int StartTeam = TEAM_SPECTATORS;
+		m_apPlayers[ClientID] = new(ClientID) CPlayer(this, ClientID, StartTeam); }
+	else{
+		const int StartTeam = g_Config.m_SvTournamentMode ? TEAM_SPECTATORS : m_pController->GetAutoTeam(ClientID);
+		m_apPlayers[ClientID] = new(ClientID) CPlayer(this, ClientID, StartTeam); }
 
-	m_apPlayers[ClientID] = new(ClientID) CPlayer(this, ClientID, StartTeam);
 	//players[client_id].init(client_id);
 	//players[client_id].client_id = client_id;
 	
@@ -540,9 +552,26 @@ void CGameContext::OnClientConnected(int ClientID)
 	if(m_VoteCloseTime)
 		SendVoteSet(ClientID);
 
-	// send motd
+	// send motd // foot or ko race? update motd!
+	
 	CNetMsg_Sv_Motd Msg;
-	Msg.m_pMessage = g_Config.m_SvMotd;
+
+	char aBuf[500];
+
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0)
+	{
+		str_format(aBuf, sizeof(aBuf), "Teefoot v%s by Bass \n\n\n How to play? \n\n It's simply,\n get the Ball and shot Goals!\n\n If an enemy got the Ball you can  steel him the ball by hammering  him \n\n\n That all you have to know! \n\n\n\n Have fun with playing! \n\n\n\n\n Server Hosted by %s", FOOT_VERSION, SERVER_HOSTER);
+		Msg.m_pMessage = aBuf;	
+	}
+	else if(str_comp(g_Config.m_SvGametype, "korace") == 0)
+	{
+		str_format(aBuf, sizeof(aBuf), "[K.o]Race v%s by Bass \n\n\n How to play? \n\n\n It's just so easy.\n\n Every round, \n the last one gets out!\n\n\n You only can join \n the game at Warmup\n\n\n\n Have fun at Playing! \n\n\n\n\n Server Hosted by %s", KORACE_VERSION, SERVER_HOSTER);
+		Msg.m_pMessage = aBuf;
+	}
+	else
+		Msg.m_pMessage = g_Config.m_SvMotd;
+	
+	
 	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ClientID);
 }
 
@@ -768,10 +797,25 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 	}
 	else if (MsgID == NETMSGTYPE_CL_SETTEAM && !m_World.m_Paused)
 	{
+		
 		CNetMsg_Cl_SetTeam *pMsg = (CNetMsg_Cl_SetTeam *)pRawMsg;
 		
+		
+
 		if(pPlayer->GetTeam() == pMsg->m_Team || (g_Config.m_SvSpamprotection && pPlayer->m_LastSetTeam && pPlayer->m_LastSetTeam+Server()->TickSpeed()*3 > Server()->Tick()))
 			return;
+
+		if(str_comp(g_Config.m_SvGametype, "korace") == 0)  
+		{
+			if(m_pController->bRoundBegan)
+			{
+				if(pMsg->m_Team != TEAM_SPECTATORS && pPlayer->GetTeam() == TEAM_SPECTATORS)
+				{
+					SendChatTarget(ClientID, "The round's running, please join next round until warmup!");
+					return;
+				}
+			}
+		}
 
 		// Switch team on given client and kill/respawn him
 		if(m_pController->CanJoinTeam(pMsg->m_Team, ClientID))
@@ -1338,8 +1382,12 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	//players = new CPlayer[MAX_CLIENTS];
 
 	// select gametype
-	if(str_comp(g_Config.m_SvGametype, "mod") == 0)
-		m_pController = new CGameControllerMOD(this);
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0)
+		m_pController = new CGameControllerFOOT(this);
+	else if(str_comp(g_Config.m_SvGametype, "korace") == 0)
+		m_pController = new CGameControllerKORACE(this);
+	else if(str_comp(g_Config.m_SvGametype, "dm") == 0)
+		m_pController = new CGameControllerDM(this);
 	else if(str_comp(g_Config.m_SvGametype, "ctf") == 0)
 		m_pController = new CGameControllerCTF(this);
 	else if(str_comp(g_Config.m_SvGametype, "tdm") == 0)

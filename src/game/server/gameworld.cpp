@@ -4,6 +4,7 @@
 #include "gameworld.h"
 #include "entity.h"
 #include "gamecontext.h"
+#include <engine/shared/config.h>
 
 //////////////////////////////////////////////////
 // game world
@@ -15,6 +16,9 @@ CGameWorld::CGameWorld()
 	
 	m_Paused = false;
 	m_ResetRequested = false;
+
+	m_ResetAtGoal = false;
+
 	for(int i = 0; i < NUM_ENTTYPES; i++)
 		m_apFirstEntityTypes[i] = 0;
 }
@@ -124,11 +128,17 @@ void CGameWorld::Reset()
 			pEnt = m_pNextTraverseEntity;
 		}
 	RemoveEntities();
+	if(m_ResetRequested)
+		GameServer()->m_pController->PostReset();
+	else if(m_ResetAtGoal)
+		GameServer()->m_pController->RespawnAfterGoal();
 
-	GameServer()->m_pController->PostReset();
 	RemoveEntities();
 
-	m_ResetRequested = false;
+	if(m_ResetRequested)
+		m_ResetRequested = false;
+	if(m_ResetAtGoal)
+		m_ResetAtGoal = false;
 }
 
 void CGameWorld::RemoveEntities()
@@ -149,7 +159,7 @@ void CGameWorld::RemoveEntities()
 
 void CGameWorld::Tick()
 {
-	if(m_ResetRequested)
+	if(m_ResetRequested || m_ResetAtGoal)
 		Reset();
 
 	if(!m_Paused)
@@ -189,7 +199,7 @@ CCharacter *CGameWorld::IntersectCharacter(vec2 Pos0, vec2 Pos1, float Radius, v
 	CCharacter *p = (CCharacter *)FindFirst(ENTTYPE_CHARACTER);
 	for(; p; p = (CCharacter *)p->TypeNext())
  	{
-		if(p == pNotThis)
+		if(p == pNotThis)// && str_comp(g_Config.m_SvGametype, "foot") != 0)//<-this one?
 			continue;
 			
 		vec2 IntersectPos = closest_point_on_line(Pos0, Pos1, p->m_Pos);

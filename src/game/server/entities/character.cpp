@@ -56,8 +56,24 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 {
 	m_EmoteStop = -1;
 	m_LastAction = -1;
-	m_ActiveWeapon = WEAPON_GUN;
-	m_LastWeapon = WEAPON_HAMMER;
+	if(str_comp(g_Config.m_SvGametype, "foot" ))
+	{
+		m_ActiveWeapon = WEAPON_HAMMER;
+		m_LastWeapon = WEAPON_HAMMER;
+		//SetWeapon(WEAPON_HAMMER);
+	}
+	else if(str_comp(g_Config.m_SvGametype, "korace" ))
+	{
+		m_ActiveWeapon = WEAPON_GUN;
+		m_LastWeapon = WEAPON_GUN;
+		//SetWeapon(WEAPON_GUN);
+	}
+	else
+	{
+		m_ActiveWeapon = WEAPON_GUN;
+		m_LastWeapon = WEAPON_HAMMER;
+	}
+
 	m_QueuedWeapon = -1;
 	
 	m_pPlayer = pPlayer;
@@ -196,6 +212,9 @@ void CCharacter::HandleNinja()
 
 void CCharacter::DoWeaponSwitch()
 {
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0 && m_ActiveWeapon == WEAPON_GRENADE)
+		return;
+
 	// make sure we can switch
 	if(m_ReloadTimer != 0 || m_QueuedWeapon == -1 || m_aWeapons[WEAPON_NINJA].m_Got)
 		return;
@@ -249,12 +268,15 @@ void CCharacter::FireWeapon()
 {
 	if(m_ReloadTimer != 0)
 		return;
+
+	if(str_comp(g_Config.m_SvGametype, "foot" ) == 0 && m_ReloadTimer != 0 && !(HoldBallTick && Server()->Tick() >= HoldBallTick))
+		return;
 		
 	DoWeaponSwitch();
 	vec2 Direction = normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY));
 	
 	bool FullAuto = false;
-	if(m_ActiveWeapon == WEAPON_GRENADE || m_ActiveWeapon == WEAPON_SHOTGUN || m_ActiveWeapon == WEAPON_RIFLE)
+	if((m_ActiveWeapon == WEAPON_GRENADE && str_comp(g_Config.m_SvGametype, "foot" ) != 0) ||m_ActiveWeapon == WEAPON_SHOTGUN || m_ActiveWeapon == WEAPON_RIFLE)
 		FullAuto = true;
 
 
@@ -264,6 +286,9 @@ void CCharacter::FireWeapon()
 		WillFire = true;
 		
 	if(FullAuto && (m_LatestInput.m_Fire&1) && m_aWeapons[m_ActiveWeapon].m_Ammo)
+		WillFire = true;
+
+	if(HoldBallTick && Server()->Tick() >= HoldBallTick)
 		WillFire = true;
 		
 	if(!WillFire)
@@ -314,6 +339,9 @@ void CCharacter::FireWeapon()
 					
 				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
 					m_pPlayer->GetCID(), m_ActiveWeapon);
+				if(str_comp(g_Config.m_SvGametype, "foot" ) == 0)
+					pTarget->LoseBall();
+
 				Hits++;
 			}
 			
@@ -424,8 +452,28 @@ void CCharacter::FireWeapon()
 	
 	m_AttackTick = Server()->Tick();
 	
-	if(m_aWeapons[m_ActiveWeapon].m_Ammo > 0) // -1 == unlimited
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0)
+	{	
+		if(GameServer()->m_pController->pLostBall == 1)
+		{
+			m_aWeapons[WEAPON_GRENADE].m_Got = true;
+			m_aWeapons[WEAPON_GRENADE].m_Ammo = 1;
+			SetWeapon(WEAPON_GRENADE);
+			HoldBallTick = Server()->Tick() +Server()->TickSpeed() * 3;
+			GameServer()->m_pController->pLostBall = 0;
+		}
+		else if (m_ActiveWeapon == WEAPON_GRENADE)
+		{
+			m_aWeapons[m_ActiveWeapon].m_Ammo = 0;
+			SetWeapon(WEAPON_HAMMER);
+			m_aWeapons[WEAPON_GRENADE].m_Got = false;
+			HoldBallTick = 0;
+		}
+	}
+	else if(m_aWeapons[m_ActiveWeapon].m_Ammo > 0) // -1 == unlimited
 		m_aWeapons[m_ActiveWeapon].m_Ammo--;
+
+	
 	
 	if(!m_ReloadTimer)
 		m_ReloadTimer = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Firedelay * Server()->TickSpeed() / 1000;
@@ -533,6 +581,61 @@ void CCharacter::OnDirectInput(CNetObj_PlayerInput *pNewInput)
 
 void CCharacter::Tick()
 {
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0)
+	{
+		this->m_Armor = (HoldBallTick - Server()->Tick()) * 11 / (Server()->TickSpeed() * 3);
+		if(this->m_Armor >= 11)
+			this->m_Armor -= 1;
+	}
+
+	
+	if(str_comp(g_Config.m_SvGametype, "korace") == 0 && GameServer()->m_pController->bRoundBegan)
+	{
+		//use checkpoints to get sure that the player don't runs into the counter again and again.
+		if( ( GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER) && m_pPlayer->m_Score == 0)
+		{
+			CheckedPoint = 0;
+			GameServer()->m_pController->EnterNextRound(m_pPlayer->GetCID());
+			GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_LONG);
+		}
+		else if( ( GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_ROUNDCOUNTER) && CheckedPoint == 3 )
+		{
+			CheckedPoint = 0;
+			GameServer()->m_pController->EnterNextRound(m_pPlayer->GetCID());
+			GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_LONG);
+		}
+		else if( (GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK1 ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK1 ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK1 ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK1) && CheckedPoint == 0 )
+		{
+			//checkpoint 1 arrived
+			CheckedPoint = 1;
+		}
+		else if( (GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK2 ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK2 ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK2 ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK2)  && CheckedPoint == 1 )
+		{
+			//checkpoint 2 arrived
+			CheckedPoint = 2;
+		}
+		else if( (GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK3 ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK3 ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK3 ||
+		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_CHECK3) && CheckedPoint == 2 )
+		{
+			//checkpoint 3 arrived
+			CheckedPoint = 3;
+		}
+	}
+
 	if(m_pPlayer->m_ForceBalanced)
 	{
 		char Buf[128];
@@ -664,6 +767,20 @@ bool CCharacter::IncreaseArmor(int Amount)
 
 void CCharacter::Die(int Killer, int Weapon)
 {
+	if(str_comp(g_Config.m_SvGametype, "foot") == 0)
+	{
+		while(HoldBallTick)
+		{
+			HoldBallTick = 1;
+			FireWeapon();
+		}
+	}
+	if(str_comp(g_Config.m_SvGametype, "korace") == 0)
+	{
+		CheckedPoint = 0;
+		GameServer()->CreateExplosion(m_Pos, -1, -1, true);
+	}
+
 	// we got to wait 0.5 secs before respawning
 	m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
 	int ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
@@ -697,9 +814,17 @@ void CCharacter::Die(int Killer, int Weapon)
 bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 {
 	m_Core.m_Vel += Force;
+
+	if(str_comp(g_Config.m_SvGametype, "foot" ) == 0 && Weapon == WEAPON_HAMMER)
+		return false;
+
+	if(GameServer()->m_pController->bNoDamage)
+		return false;
 	
 	if(GameServer()->m_pController->IsFriendlyFire(m_pPlayer->GetCID(), From) && !g_Config.m_SvTeamdamage)
 		return false;
+
+	
 
 	// m_pPlayer only inflicts half damage on self
 	if(From == m_pPlayer->GetCID())
@@ -836,4 +961,26 @@ void CCharacter::Snap(int SnappingClient)
 	}
 
 	pCharacter->m_PlayerFlags = GetPlayer()->m_PlayerFlags;
+}
+
+void CCharacter::PlayerGetBall()
+{
+	m_aWeapons[WEAPON_GRENADE].m_Got = true;
+	m_aWeapons[WEAPON_GRENADE].m_Ammo = 1;
+	SetWeapon(WEAPON_GRENADE);
+	HoldBallTick = Server()->Tick() +Server()->TickSpeed() * 3;
+}
+
+bool CCharacter::LoseBall()
+{
+	if(m_ActiveWeapon == WEAPON_GRENADE)
+	{
+		SetWeapon(WEAPON_HAMMER);
+		m_aWeapons[WEAPON_GRENADE].m_Got = false;
+		GameServer()->m_pController->pLostBall = 1;
+		HoldBallTick = 0;
+		return true;
+	}
+
+	return false;
 }
