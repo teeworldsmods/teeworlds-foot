@@ -90,4 +90,57 @@ MACRO_CONFIG_INT(DbgGraphs, dbg_graphs, 0, 0, 1, CFGFLAG_CLIENT, "Performance gr
 MACRO_CONFIG_INT(DbgHitch, dbg_hitch, 0, 0, 0, CFGFLAG_SERVER, "Hitch warnings")
 MACRO_CONFIG_STR(DbgStressServer, dbg_stress_server, 32, "localhost", CFGFLAG_CLIENT, "Server to stress")
 MACRO_CONFIG_INT(DbgResizable, dbg_resizable, 0, 0, 0, CFGFLAG_CLIENT, "Enables window resizing")
+
+// TeeFoot
+
+MACRO_CONFIG_INT(SvBounceLossX, sv_bounce_loss_x, 50, 0, 100000, CFGFLAG_SERVER, "The ball looses that much x-speed after a bounce")
+MACRO_CONFIG_INT(SvBounceLossY, sv_bounce_loss_y, 50, 0, 100000, CFGFLAG_SERVER, "The ball looses that much y-speed after a bounce")
+MACRO_CONFIG_INT(SvExplosions, sv_explosions, 0, 0, 1, CFGFLAG_SERVER, "Should the grenades explode")
+
+/*
+	MACRO_CONFIG_INT(sv_ball_respawn, 5, 0, 100000, CFGFLAG_SERVER, "Respawn time of the ball",2)
+	MACRO_CONFIG_INT(sv_real_foot, 0, 0, 1, CFGFLAG_SERVER, "Disables the hammer",2)
+	MACRO_CONFIG_INT(sv_start_hammer, 1, 0, 1, CFGFLAG_SERVER, "The player has a hammer after respawn.",2)
+	MACRO_CONFIG_INT(sv_start_pistol, 0, 0, 10, CFGFLAG_SERVER, "The player has a pistol after respawn with this ammo.",2)
+	MACRO_CONFIG_INT(sv_start_shotgun, 0, 0, 10, CFGFLAG_SERVER, "The player has a shotgun after respawn with this ammo.",2)
+	MACRO_CONFIG_INT(sv_start_grenade, 0, 0, 10, CFGFLAG_SERVER, "The player has a grenadelauncher after respawn with this ammo.",2)
+	MACRO_CONFIG_INT(sv_start_ninja, 0, 0, 1, CFGFLAG_SERVER, "The player has a ninja after respawn.",2)
+	MACRO_CONFIG_INT(sv_start_rifle, 0, 0, 10, CFGFLAG_SERVER, "The player has a rifle after respawn with this ammo.",2)
+	MACRO_CONFIG_INT(sv_spawn_delay, 2000, 0, 100000, CFGFLAG_SERVER, "Spawn delay for players after a kill",2)
+	MACRO_CONFIG_INT(sv_goaler_score, 1, 0, 1000, CFGFLAG_SERVER, "Score for the goaler",2)
+	MACRO_CONFIG_INT(sv_passer_score, 1, 0, 1000, CFGFLAG_SERVER, "Score for the passer",2)
+	MACRO_CONFIG_INT(sv_team_score, 1, 0, 1000, CFGFLAG_SERVER, "Score for the team",2)
+	MACRO_CONFIG_INT(sv_team_pass_score, 1, 0, 1000, CFGFLAG_SERVER, "Score for the team through a goal with pass",2)
+	MACRO_CONFIG_INT(sv_own_goal, 1, 0, 1000, CFGFLAG_SERVER, "Negative score for a wrong goal",2)
+	MACRO_CONFIG_INT(sv_suicide_score, 1, 0, 1, CFGFLAG_SERVER, "Count selfkills as negative score",2)
+	MACRO_CONFIG_INT(sv_diff_score, 1, 0, 1000, CFGFLAG_SERVER, "Difference between the team-scores before a team can win",2)
+	MACRO_CONFIG_INT(sv_kill_score, 1, 0, 1, CFGFLAG_SERVER, "Are there points for a kill",2)
+	MACRO_CONFIG_INT(sv_generate_pro_pw, 0, 0, 1, CFGFLAG_SERVER, "Gives good players a password at the end of a round.",2)
+	MACRO_CONFIG_STR(sv_pre_password_msg, 512, "Here is your password for the professional server. It's the correct one for this day and your nick, noone else.", CFGFLAG_SERVER, "Message the server gives the player who receives a password for pro-server",2)
+	MACRO_CONFIG_INT(sv_player_keeptime, 3, 0, 100000, CFGFLAG_SERVER, "The player fires the ball automatically after this time (0 immediately)",2)
+	MACRO_CONFIG_INT(sv_use_pro_pw, 0, 0, 1, CFGFLAG_SERVER, "The player have to type in the custom password for his name or the general password.",2)
+	MACRO_CONFIG_STR(sv_pro_password, 32, "", CFGFLAG_SERVER, "The general password for the professional server (is needed to generate and check passwords)",2)
+	MACRO_CONFIG_INT(sv_pickup_with_no_armor, 1, 0, 1, CFGFLAG_SERVER, "Pickup the ball without any armor?",2)
+	MACRO_CONFIG_INT(sv_ball_reloader, 10, 0, 1000, CFGFLAG_SERVER, "Reload the ball",2)
+	MACRO_CONFIG_INT(sv_hammer_team_att_loss, 0, 0, 10, CFGFLAG_SERVER, "The attacker looses this health, if he attacks a teammate",2)
+	MACRO_CONFIG_INT(sv_hammer_att_loss, 0, 0, 10, CFGFLAG_SERVER, "The attacker looses this health",2)
+	MACRO_CONFIG_INT(sv_hammer_def_loss, 0, 0, 10, CFGFLAG_SERVER, "The victim player looses this armor",2)
+	MACRO_CONFIG_INT(sv_grenade_startspeed, 0, 0, 1000000, CFGFLAG_SERVER, "startspeed of the grenade (the sum of player-speed and normal grenade-speed)",2)
+	MACRO_CONFIG_INT(sv_partly_dead, 0, 0, 10000, CFGFLAG_SERVER, "If the player only has 1hp, the player is partly dead for this value seconds. In this time there is no health/armor regeneration and the player can't hook other players or take the ball",2)
+	MACRO_CONFIG_INT(sv_respawn_powerups, 1, 0, 1, CFGFLAG_SERVER, "Should the powerups respawn",2)
+	MACRO_CONFIG_INT(sv_show_votings, 1, 0, 2, CFGFLAG_SERVER, "0 disables, 1 enables for all and 2 enables only for admin",2)
+
+	MACRO_CONFIG_INT(sv_reserved_slots, 0, 0, 12, CFGFLAG_SERVER, "Number of reserved slots",2)
+	MACRO_CONFIG_STR(sv_reserved_slots_pass, 32, "", CFGFLAG_SERVER, "Password for reserver slots",2)
+
+	MACRO_CONFIG_STR(sv_message, 300, "", CFGFLAG_SERVER, "Message displayed all sv_message_time seconds, max 100 symbols",2)
+	MACRO_CONFIG_INT(sv_message_time, 5, 1, 30, CFGFLAG_SERVER, "Time between two sv_messages in minutes",2)
+	MACRO_CONFIG_INT(sv_max_idle, 300, 0, 600, CFGFLAG_SERVER, "Time after a player got ask state to wait with kick him",2)
+	MACRO_CONFIG_INT(sv_set_afk_idle, 60, 0, 600, CFGFLAG_SERVER, "Time how long a player doesn´t get afk state afte his last input",2)
+	MACRO_CONFIG_INT(sv_max_noob_time, 20, 0, 600, CFGFLAG_SERVER, "Time how long a nooblisted player can be on the server",2)
+
+	MACRO_CONFIG_INT(sv_dev_powers, 0, 0, 1, CFGFLAG_SERVER, "Special powers for developers :)",2)
+
+	MACRO_CONFIG_STR(sv_blacklist, 32, "Blacklist.TEEFOOT", CFGFLAG_SERVER, "Blacklist for some fuckign ip refreshing noobs!",2)
+*/
 #endif
