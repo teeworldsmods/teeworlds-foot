@@ -68,11 +68,6 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 		m_LastWeapon = WEAPON_GUN;
 		//SetWeapon(WEAPON_GUN);
 	}
-	else
-	{
-		m_ActiveWeapon = WEAPON_GUN;
-		m_LastWeapon = WEAPON_HAMMER;
-	}
 
 	m_QueuedWeapon = -1;
 
