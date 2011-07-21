@@ -56,7 +56,7 @@ MACRO_CONFIG_INT(GfxNoclip, gfx_noclip, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "D
 
 // server
 MACRO_CONFIG_INT(SvWarmup, sv_warmup, 10, 0, 2400, CFGFLAG_SERVER, "Number of seconds to do warmup before round starts")
-MACRO_CONFIG_STR(SvMotd, sv_motd, 900, "", CFGFLAG_SERVER, "Message of the day to display for the clients")
+MACRO_CONFIG_STR(SvMotd, sv_motd, 900, "Teefoot by Bass, unlimreal, GreYFoX... and more \n\n\n How to play? \n\n It's simply,\n get the Ball and shot Goals!\n\n If an enemy got the Ball you can  steel him the ball by hammering  him \n\n\n That all you have to know! \n\n\n\n Have fun with playing! \n\n\n PLease report bugs to github.com/GreYFoX/teeworlds/issues", CFGFLAG_SERVER, "Message of the day to display for the clients")
 MACRO_CONFIG_INT(SvTeamdamage, sv_teamdamage, 0, 0, 1, CFGFLAG_SERVER, "Team damage")
 MACRO_CONFIG_STR(SvMaprotation, sv_maprotation, 768, "", CFGFLAG_SERVER, "Maps to rotate between")
 MACRO_CONFIG_INT(SvRoundsPerMap, sv_rounds_per_map, 1, 1, 100, CFGFLAG_SERVER, "Number of rounds on each map before rotating")

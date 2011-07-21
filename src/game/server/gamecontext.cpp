@@ -556,15 +556,7 @@ void CGameContext::OnClientConnected(int ClientID)
 	
 	CNetMsg_Sv_Motd Msg;
 
-	char aBuf[500];
-
-	if(str_comp(g_Config.m_SvGametype, "foot") == 0)
-	{
-		str_format(aBuf, sizeof(aBuf), "Teefoot v%s by Bass \n\n\n How to play? \n\n It's simply,\n get the Ball and shot Goals!\n\n If an enemy got the Ball you can  steel him the ball by hammering  him \n\n\n That all you have to know! \n\n\n\n Have fun with playing! \n\n\n\n\n Server Hosted by %s", FOOT_VERSION, SERVER_HOSTER);
-		Msg.m_pMessage = aBuf;	
-	}
-	else
-		Msg.m_pMessage = g_Config.m_SvMotd;
+	Msg.m_pMessage = g_Config.m_SvMotd;
 	
 	
 	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ClientID);
