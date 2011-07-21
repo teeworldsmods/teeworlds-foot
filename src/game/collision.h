@@ -12,7 +12,7 @@ class CCollision
 	int m_Height;
 	class CLayers *m_pLayers;
 
-	bool IsTileSolid(int x, int y);
+	// bool IsTileSolid(int x, int y);
 	int GetTile(int x, int y);
 
 public:
@@ -21,10 +21,6 @@ public:
 		COLFLAG_SOLID=1,
 		COLFLAG_DEATH=2,
 		COLFLAG_NOHOOK=4,
-		COLFLAG_ROUNDCOUNTER=8,
-		COLFLAG_CHECK1=16,
-		COLFLAG_CHECK2=32,
-		COLFLAG_CHECK3=64,
 	};
 
 	CCollision();
@@ -43,10 +39,11 @@ public:
 	int OnCheckPoint1(int x, int y);
 	int OnCheckPoint2(int x, int y);
 	int OnCheckPoint3(int x, int y);
-	int col_is_red(int x, int y);
-	int col_is_blue(int x, int y);
-	
-	int col_is_solid(int x, int y);
+
+	// TeeFoot
+	bool IsTileSolid(int x, int y);
+	int IsRedGoal(int x, int y);
+	int IsBlueGoal(int x, int y);
 };
 
 #endif
