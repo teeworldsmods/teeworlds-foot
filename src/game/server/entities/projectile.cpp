@@ -211,14 +211,14 @@ void CProjectile::Tick()
 				   m_LastOwner = m_Owner;
 				   TChar->HoldBallTick = Server()->Tick() + Server()->TickSpeed() * 3;
 			}
-			else if(GameServer()->Collision()->IsRedGoal((int)CurP.x,(int)CurP.y) && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
+			else if(GameServer()->Collision()->IsRedGoal((int)CurP.x,(int)CurP.y) && GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
 			{
 				GameServer()->m_World.DestroyEntity(this);
 				GameServer()->CreateExplosion(CurP, m_Owner, m_Weapon, true);
 				GameServer()->m_pController->OnGoalRed(m_Owner);
 				//game.controller->on_player_goal(game.players[owner], 0);
 			}
-			else if(GameServer()->Collision()->IsBlueGoal((int)CurP.x,(int)CurP.y) && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
+			else if(GameServer()->Collision()->IsBlueGoal((int)CurP.x,(int)CurP.y) && GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
 			{
 				GameServer()->m_World.DestroyEntity(this);
 				GameServer()->CreateExplosion(CurP, m_Owner, m_Weapon, true);
