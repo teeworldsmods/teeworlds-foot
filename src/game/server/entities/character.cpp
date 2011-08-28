@@ -464,7 +464,6 @@ void CCharacter::FireWeapon()
 	else if(m_aWeapons[m_ActiveWeapon].m_Ammo > 0) // -1 == unlimited
 		m_aWeapons[m_ActiveWeapon].m_Ammo--;
 
-	
 	if(!m_ReloadTimer)
 		m_ReloadTimer = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Firedelay * Server()->TickSpeed() / 1000;
 }
@@ -772,8 +771,6 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	if(GameServer()->m_pController->IsFriendlyFire(m_pPlayer->GetCID(), From) && !g_Config.m_SvTeamdamage)
 		return false;
 
-	
-
 	// m_pPlayer only inflicts half damage on self
 	if(From == m_pPlayer->GetCID())
 		Dmg = max(1, Dmg/2);
@@ -925,7 +922,7 @@ void CCharacter::PlayerGetBall()
 	m_aWeapons[WEAPON_GRENADE].m_Got = true;
 	m_aWeapons[WEAPON_GRENADE].m_Ammo = 1;
 	SetWeapon(WEAPON_GRENADE);
-	HoldBallTick = Server()->Tick() +Server()->TickSpeed() * 3;
+	HoldBallTick = Server()->Tick() + Server()->TickSpeed() * 3;
 }
 
 bool CCharacter::LoseBall()

@@ -161,7 +161,7 @@ void CProjectile::Tick()
 						GameServer()->m_World.DestroyEntity(this);
 						GameServer()->CreateSound(CurP, m_SoundImpact);
 
-	                   if(m_Explosive && g_Config.m_SvExplosions == 1)
+						if(m_Explosive && g_Config.m_SvExplosions == 1)
 							GameServer()->CreateExplosion(CurP, m_Owner, m_Weapon, false);
 					}
 					colbx = colbx + 1;
@@ -178,9 +178,9 @@ void CProjectile::Tick()
 					{
 						GameServer()->m_pController->BallSpawning = Server()->Tick() + 4 * Server()->TickSpeed();
 						GameServer()->m_World.DestroyEntity(this);
-	                    GameServer()->CreateSound(CurP, m_SoundImpact);
+						GameServer()->CreateSound(CurP, m_SoundImpact);
 
-	                   if(m_Explosive && g_Config.m_SvExplosions == 1)
+						if(m_Explosive && g_Config.m_SvExplosions == 1)
 							GameServer()->CreateExplosion(CurP, m_Owner, m_Weapon, false);
 					}
 					colby = colby + 1;
@@ -206,10 +206,10 @@ void CProjectile::Tick()
 			}
 			if(TChar)
 			{
-				   TChar->PlayerGetBall();
-				   GameServer()->m_World.DestroyEntity(this);
-				   m_LastOwner = m_Owner;
-				   TChar->HoldBallTick = Server()->Tick() + Server()->TickSpeed() * 3;
+					TChar->PlayerGetBall();
+					GameServer()->m_World.DestroyEntity(this);
+					m_LastOwner = m_Owner;
+					TChar->HoldBallTick = Server()->Tick() + Server()->TickSpeed() * 3;
 			}
 			else if(GameServer()->Collision()->IsRedGoal((int)CurP.x,(int)CurP.y) && GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
 			{
