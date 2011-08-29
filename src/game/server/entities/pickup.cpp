@@ -22,7 +22,7 @@ void CPickup::Reset()
 {
 	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0 && m_Type == POWERUP_WEAPON && m_Subtype == WEAPON_GRENADE)
 	{
-			GameServer()->m_pController->BallSpawning = Server()->Tick() + 5 * Server()->TickSpeed();
+			GameServer()->m_pController->m_BallSpawning = Server()->Tick() + g_Config.m_SvBallRespawn * Server()->TickSpeed();
 			m_SpawnTick = 1;
 		return;
 	}
@@ -36,14 +36,14 @@ void CPickup::Tick()
 {
 	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0 && m_Type == POWERUP_WEAPON && m_Subtype == WEAPON_GRENADE)
 	{
-		if(GameServer()->m_pController->BallSpawning && m_SpawnTick != -1 && GameServer()->m_pController->BallSpawning <= Server()->Tick())
+		if(GameServer()->m_pController->m_BallSpawning && m_SpawnTick != -1 && GameServer()->m_pController->m_BallSpawning <= Server()->Tick())
 		{
 			// respawn
 			m_SpawnTick = -1;
 			if(m_Type == POWERUP_WEAPON)
 				GameServer()->CreateSound(m_Pos, SOUND_WEAPON_SPAWN);
 		}
-		else if( ( !GameServer()->m_pController->BallSpawning && m_SpawnTick == 0 ) || GameServer()->m_pController->BallSpawning  > Server()->Tick())
+		else if( ( !GameServer()->m_pController->m_BallSpawning && m_SpawnTick == 0 ) || GameServer()->m_pController->m_BallSpawning  > Server()->Tick())
 			return;
 	}
 	// wait for respawn
@@ -62,7 +62,7 @@ void CPickup::Tick()
 	}
 	// Check if a player intersected us
 	CCharacter *pChr = GameServer()->m_World.ClosestCharacter(m_Pos, 20.0f, 0);
-	if(pChr && pChr->IsAlive())
+	if((pChr && pChr->IsAlive()) || (pChr && str_comp_nocase(g_Config.m_SvGametype, "foot") == 0))
 	{
 		// player picked us up, is someone was hooking us, let them go
 		int RespawnTime = -1;
@@ -89,12 +89,13 @@ void CPickup::Tick()
 				{
 					if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0 && m_Subtype == WEAPON_GRENADE)
 					{
-						//givebal
+						//give ball
 						m_SpawnTick = 0;
 						if(m_Subtype == WEAPON_GRENADE)
 							GameServer()->CreateSound(m_Pos, SOUND_PICKUP_GRENADE);
 
-						GameServer()->m_pController->BallSpawning = 0;
+						GameServer()->m_pController->m_BallSpawning = 0;
+						GameServer()->m_pController->m_Passer = -1;
 						pChr->PlayerGetBall();
 					}
 					else if(pChr->GiveWeapon(m_Subtype, 10))
@@ -136,7 +137,7 @@ void CPickup::Tick()
 				break;
 		};
 
-		if(RespawnTime >= 0 && !(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0 && m_Type == POWERUP_WEAPON))
+		if(RespawnTime >= 0 && str_comp_nocase(g_Config.m_SvGametype, "foot") && m_Type == POWERUP_WEAPON)
 		{
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), "pickup player='%d:%s' item=%d/%d",

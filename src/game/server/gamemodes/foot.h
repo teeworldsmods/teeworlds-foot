@@ -7,10 +7,11 @@
 
 // you can subclass GAMECONTROLLER_CTF, GAMECONTROLLER_TDM etc if you want
 // todo a modification with their base as well.
-class CGameControllerFOOT : public IGameController
+class CGameControllerFoot : public IGameController
 {
+	void Reset();
 public:
-	CGameControllerFOOT(class CGameContext *pGameServer);
+	CGameControllerFoot(class CGameContext *pGameServer);
 	virtual void Tick();
 	CPlayer *m_apPlayers[MAX_CLIENTS];
 

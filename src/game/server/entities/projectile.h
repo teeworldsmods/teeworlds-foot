@@ -16,8 +16,8 @@ public:
 	virtual void Tick();
 	virtual void Snap(int SnappingClient);
 
-	unsigned short colbx;
-	unsigned short colby;
+	unsigned short m_CollisionsByX;
+	unsigned short m_CollisionByY;
 
 private:
 	vec2 m_Direction;
@@ -30,7 +30,7 @@ private:
 	float m_Force;
 	int m_StartTick;
 	bool m_Explosive;
-	int pick_up_again; //<-foot grenade diff.
+	int m_FootPickupDistance; //<-foot grenade diff.
 	int m_LastOwner;
 };
 

@@ -127,13 +127,14 @@ public:
 	virtual int OnGoalRed(int Goaler); //<- this are..
 	virtual int OnGoalBlue(int Goaler); //<- ..the goals
 
-	int BallSpawning;
-	int BallSpawnTick;
-	int pLostBall;
+	int m_BallSpawning;
+	int m_BallSpawnTick;
+	int m_LostBall;
 
-	bool bNoDamage;
-	bool bRoundBegan;
-	int PlayersInGame;
+	bool m_IsNoDamage;
+	bool m_RoundBegan;
+	int m_PlayersInGame;
+	int m_Passer;
 
 	void WaitForNextRound();
 

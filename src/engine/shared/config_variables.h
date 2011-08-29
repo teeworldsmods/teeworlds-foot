@@ -109,9 +109,10 @@ MACRO_CONFIG_INT(DbgResizable, dbg_resizable, 0, 0, 0, CFGFLAG_CLIENT, "Enables 
 
 MACRO_CONFIG_INT(SvBounceLoss, sv_bounce_loss, 50, 0, 100000, CFGFLAG_SERVER, "The ball looses that much speed after a bounce")
 MACRO_CONFIG_INT(SvExplosions, sv_explosions, 0, 0, 1, CFGFLAG_SERVER, "Should the grenades explode")
+MACRO_CONFIG_INT(SvSpawnDelay, sv_spawn_delay, 2000, 0, 100000, CFGFLAG_SERVER, "Spawn delay for players after a kill")
+MACRO_CONFIG_INT(SvBallRespawn, sv_ball_respawn, 5, 0, 100000, CFGFLAG_SERVER, "Respawn time of the ball")
 
 /*
-	MACRO_CONFIG_INT(sv_ball_respawn, 5, 0, 100000, CFGFLAG_SERVER, "Respawn time of the ball",2)
 	MACRO_CONFIG_INT(sv_real_foot, 0, 0, 1, CFGFLAG_SERVER, "Disables the hammer",2)
 	MACRO_CONFIG_INT(sv_start_hammer, 1, 0, 1, CFGFLAG_SERVER, "The player has a hammer after respawn.",2)
 	MACRO_CONFIG_INT(sv_start_pistol, 0, 0, 10, CFGFLAG_SERVER, "The player has a pistol after respawn with this ammo.",2)
@@ -119,7 +120,6 @@ MACRO_CONFIG_INT(SvExplosions, sv_explosions, 0, 0, 1, CFGFLAG_SERVER, "Should t
 	MACRO_CONFIG_INT(sv_start_grenade, 0, 0, 10, CFGFLAG_SERVER, "The player has a grenadelauncher after respawn with this ammo.",2)
 	MACRO_CONFIG_INT(sv_start_ninja, 0, 0, 1, CFGFLAG_SERVER, "The player has a ninja after respawn.",2)
 	MACRO_CONFIG_INT(sv_start_rifle, 0, 0, 10, CFGFLAG_SERVER, "The player has a rifle after respawn with this ammo.",2)
-	MACRO_CONFIG_INT(sv_spawn_delay, 2000, 0, 100000, CFGFLAG_SERVER, "Spawn delay for players after a kill",2)
 	MACRO_CONFIG_INT(sv_goaler_score, 1, 0, 1000, CFGFLAG_SERVER, "Score for the goaler",2)
 	MACRO_CONFIG_INT(sv_passer_score, 1, 0, 1000, CFGFLAG_SERVER, "Score for the passer",2)
 	MACRO_CONFIG_INT(sv_team_score, 1, 0, 1000, CFGFLAG_SERVER, "Score for the team",2)

@@ -1,81 +1,139 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "foot.h"
-//#include <engine/shared/config.h>
 //#include <game/server/entities/character.h>
 //#include <game/server/player.h>
 //#include <game/server/gamecontext.h>
+#include <engine/shared/config.h>
 
-CGameControllerFOOT::CGameControllerFOOT(class CGameContext *pGameServer)
-: IGameController(pGameServer)
+CGameControllerFoot::CGameControllerFoot(class CGameContext *pGameServer) :
+		IGameController(pGameServer)
 {
 	m_pGameType = "Foot";
-	
+
 	m_GameFlags = GAMEFLAG_TEAMS;
 }
 
-void CGameControllerFOOT::Tick()
+void CGameControllerFoot::Tick()
 {
 	IGameController::Tick();
 }
 
-void CGameControllerFOOT::StartRound()
+void CGameControllerFoot::Reset()
+{
+	m_Passer = -1;
+	CCharacter* pTemp;
+	for (int i = 0; i < MAX_CLIENTS; i++)
+	{
+		if (GameServer()->m_apPlayers[i])
+		{
+			if ((pTemp = GameServer()->GetPlayerChar(i)) != NULL)
+			{
+				GameServer()->m_apPlayers[i]->m_RespawnTick = Server()->Tick()
+						+ (g_Config.m_SvSpawnDelay *  Server()->TickSpeed()) / 1000;
+				pTemp->Reset();
+			}
+			else if (GameServer()->m_apPlayers[i]->m_RespawnTick
+					< Server()->Tick()
+							+ (g_Config.m_SvSpawnDelay * Server()->TickSpeed())
+									/ 1000)
+			{
+				GameServer()->m_apPlayers[i]->m_RespawnTick = Server()->Tick()
+						+ (g_Config.m_SvSpawnDelay * Server()->TickSpeed()) / 1000;
+			}
+		}
+	}
+	GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
+	m_BallSpawning = Server()->Tick() + g_Config.m_SvBallRespawn * Server()->TickSpeed();
+	GameServer()->m_World.RemoveEntities();
+	GameServer()->m_World.RemoveProjectiles();
+	GameServer()->m_World.m_ResetAtGoal = true;
+}
+
+void CGameControllerFoot::StartRound()
 {
 	IGameController::StartRound();
 
-	BallSpawning = 5 * Server()->TickSpeed() + Server()->Tick();
+	m_BallSpawning = g_Config.m_SvBallRespawn * Server()->TickSpeed() + Server()->Tick();
 }
 
-int CGameControllerFOOT::OnGoalRed(int Owner)
-{	//do scoreing teams
+int CGameControllerFoot::OnGoalRed(int Owner)
+{ //do scoreing teams
 	IGameController::OnGoalRed(Owner);
-
-	CCharacter* Character = GameServer()->m_apPlayers[Owner]->GetCharacter();
-	if(!Character)
+	if(!GameServer()->m_apPlayers[Owner])
+	{
+		Reset();
 		return 0;
-
-	CPlayer* Player = Character->GetPlayer();
-
-	if(Player->GetTeam() == 1)
+	}
+	char aBuf[512];
+	if(m_Passer != Owner && // Passer and Goaler not the same person
+			m_Passer >= 0 && m_Passer < MAX_CLIENTS && // Passer ID is valid
+			GameServer()->m_apPlayers[m_Passer] && // Passer player is valid
+			GameServer()->m_apPlayers[m_Passer]->GetTeam() == GameServer()->m_apPlayers[Owner]->GetTeam() && // Goaler and Passer are in the same team
+			GameServer()->m_apPlayers[Owner]->GetTeam() == TEAM_BLUE // Make sure it's not an own goal
+			)
+	{
+		str_format(aBuf, sizeof(aBuf), "%s scored for the red team with a pass from %s", Server()->ClientName(Owner), Server()->ClientName(m_Passer));
+		IGameController::OnGoalRed(m_Passer);
 		m_aTeamscore[TEAM_BLUE]++;
-	else if(Player->GetTeam() == 0)
+	}
+	else
+		str_format(aBuf, sizeof(aBuf), "%s scored for the red team", Server()->ClientName(Owner));
+	if (GameServer()->m_apPlayers[Owner]->GetTeam() == TEAM_BLUE)
+		m_aTeamscore[TEAM_BLUE]++;
+	else if (GameServer()->m_apPlayers[Owner]->GetTeam() == TEAM_RED)
 		m_aTeamscore[TEAM_RED]--;
 
 	GameServer()->CreateSoundGlobal(SOUND_CTF_DROP);
 
-	//ResetEverything();
+	GameServer()->SendBroadcast(aBuf, -1);
+	Reset();
 
 	return 0;
 }
 
-int CGameControllerFOOT::OnGoalBlue(int Owner)
-{	//do scoreing teams
+int CGameControllerFoot::OnGoalBlue(int Owner)
+{ //do scoreing teams
 	IGameController::OnGoalBlue(Owner);
-
-	CCharacter* Character = GameServer()->m_apPlayers[Owner]->GetCharacter();
-	if(!Character)
+	if(!GameServer()->m_apPlayers[Owner])
+	{
+		Reset();
 		return 0;
-
-	CPlayer* Player = Character->GetPlayer();
-
-	if(Player->GetTeam() == 0)
+	}
+	char aBuf[512];
+	if(m_Passer != Owner && // Passer and Goaler not the same person
+			m_Passer >= 0 && m_Passer < MAX_CLIENTS && // Passer ID is valid
+			GameServer()->m_apPlayers[m_Passer] && // Passer player is valid
+			GameServer()->m_apPlayers[m_Passer]->GetTeam() == GameServer()->m_apPlayers[Owner]->GetTeam() && // Goaler and Passer are in the same team
+			GameServer()->m_apPlayers[Owner]->GetTeam() == TEAM_RED // Make sure it's not an own goal
+			)
+	{
+		str_format(aBuf, sizeof(aBuf), "%s scored for the blue team with a pass from %s", Server()->ClientName(Owner), Server()->ClientName(m_Passer));
+		IGameController::OnGoalBlue(m_Passer);
 		m_aTeamscore[TEAM_RED]++;
-	else if(Player->GetTeam() == 1)
+	}
+	else
+		str_format(aBuf, sizeof(aBuf), "%s scored for the blue team", Server()->ClientName(Owner));
+	if (GameServer()->m_apPlayers[Owner]->GetTeam() == TEAM_RED)
+		m_aTeamscore[TEAM_RED]++;
+	else if (GameServer()->m_apPlayers[Owner]->GetTeam() == TEAM_BLUE)
 		m_aTeamscore[TEAM_BLUE]--;
 
 	GameServer()->CreateSoundGlobal(SOUND_CTF_DROP);
 
-	//ResetEverything();
+	GameServer()->SendBroadcast(aBuf, -1);
+	Reset();
 
 	return 0;
 }
 
-void CGameControllerFOOT::Snap(int SnappingClient)
+void CGameControllerFoot::Snap(int SnappingClient)
 {
 	IGameController::Snap(SnappingClient);
 
-	CNetObj_GameData *pGameDataObj = (CNetObj_GameData *)Server()->SnapNewItem(NETOBJTYPE_GAMEDATA, 0, sizeof(CNetObj_GameData));
-	if(!pGameDataObj)
+	CNetObj_GameData *pGameDataObj = (CNetObj_GameData *) Server()->SnapNewItem(
+			NETOBJTYPE_GAMEDATA, 0, sizeof(CNetObj_GameData));
+	if (!pGameDataObj)
 		return;
 
 	pGameDataObj->m_TeamscoreRed = m_aTeamscore[TEAM_RED];

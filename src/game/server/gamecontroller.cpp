@@ -733,36 +733,34 @@ int IGameController::ClampTeam(int Team)
 
 int IGameController::OnGoalRed(int Owner)
 {
-	CCharacter* Character = GameServer()->m_apPlayers[Owner]->GetCharacter();
+	CCharacter* Character = GameServer()->GetPlayerChar(Owner);
 	if(!Character)
 		return 0;
 
 	CPlayer* Player = Character->GetPlayer();
 
-	if(Player->GetTeam() == 0)
+	if(Player->GetTeam() == TEAM_RED)
 		Player->m_Score--;
-	else if(Player->GetTeam() == 1)
+	else if(Player->GetTeam() == TEAM_BLUE)
 		Player->m_Score++;
 
-	GameServer()->m_World.m_ResetAtGoal = true;
 
 	return 0;
 }
 
 int IGameController::OnGoalBlue(int Owner)
 {
-	CCharacter* Character = GameServer()->m_apPlayers[Owner]->GetCharacter();
+	CCharacter* Character = GameServer()->GetPlayerChar(Owner);
 	if(!Character)
 		return 0;
 
 	CPlayer* Player = Character->GetPlayer();
 
-	if(Player->GetTeam() == 1)
+	if(Player->GetTeam() == TEAM_BLUE)
 		Player->m_Score--;
-	else if(Player->GetTeam() == 0)
+	else if(Player->GetTeam() == TEAM_RED)
 		Player->m_Score++;
 
-	GameServer()->m_World.m_ResetAtGoal = true;
 
 	return 0;
 }
@@ -778,7 +776,7 @@ void IGameController::RespawnAfterGoal()
 		}
 	}
 
-	BallSpawning = Server()->Tick() + 5 * Server()->TickSpeed();
+	m_BallSpawning = Server()->Tick() + g_Config.m_SvBallRespawn * Server()->TickSpeed();
 }
 
 void IGameController::EnterNextRound(int PlayersID)

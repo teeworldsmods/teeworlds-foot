@@ -1377,7 +1377,7 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 	// select gametype
 	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0)
-		m_pController = new CGameControllerFOOT(this);
+		m_pController = new CGameControllerFoot(this);
 	else if(str_comp_nocase(g_Config.m_SvGametype, "dm") == 0 || str_comp_nocase(g_Config.m_SvGametype, "udm") == 0)
 		m_pController = new CGameControllerDM(this);
 	else if(str_comp_nocase(g_Config.m_SvGametype, "ctf") == 0 || str_comp_nocase(g_Config.m_SvGametype, "uctf") == 0)

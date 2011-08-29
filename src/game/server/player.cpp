@@ -240,7 +240,7 @@ void CPlayer::SetTeam(int Team)
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "'%s' joined the %s", Server()->ClientName(m_ClientID), GameServer()->m_pController->GetTeamName(Team));
 
-	if(!GameServer()->m_pController->bRoundBegan && Team != -1)
+	if(!GameServer()->m_pController->m_RoundBegan && Team != -1)
 	{
 		GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf); 
 	}

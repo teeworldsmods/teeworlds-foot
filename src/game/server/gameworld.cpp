@@ -244,3 +244,19 @@ CCharacter *CGameWorld::ClosestCharacter(vec2 Pos, float Radius, CEntity *pNotTh
 
 	return pClosest;
 }
+
+void CGameWorld::RemoveProjectiles()
+{
+	CEntity *pEnt = m_apFirstEntityTypes[ENTTYPE_PROJECTILE];
+
+		while(pEnt)
+		{
+			CEntity *pNext = pEnt->m_pNextTypeEntity;
+			if(pEnt->m_ObjType == NETOBJTYPE_PROJECTILE)
+			{
+				RemoveEntity(pEnt);
+				pEnt->Destroy();
+			}
+			pEnt = pNext;
+		}
+}

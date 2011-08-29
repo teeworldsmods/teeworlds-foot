@@ -27,7 +27,7 @@ public:
 	};
 
 private:
-	friend class CGameControllerFOOT;
+	friend class CGameControllerFoot;
 	void Reset();
 	void RemoveEntities();
 
@@ -145,6 +145,8 @@ public:
 
 	*/
 	void Tick();
+
+	void RemoveProjectiles();
 };
 
 #endif

@@ -260,7 +260,7 @@ void CCharacter::FireWeapon()
 	if(m_ReloadTimer != 0)
 		return;
 
-	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0 && m_ReloadTimer != 0 && !(LoseBallTick && Server()->Tick() >= LoseBallTick))
+	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0 && m_ReloadTimer != 0 && !(m_LoseBallTick && Server()->Tick() >= m_LoseBallTick))
 		return;
 		
 	DoWeaponSwitch();
@@ -279,7 +279,7 @@ void CCharacter::FireWeapon()
 	if(FullAuto && (m_LatestInput.m_Fire&1) && m_aWeapons[m_ActiveWeapon].m_Ammo)
 		WillFire = true;
 
-	if(LoseBallTick && Server()->Tick() >= LoseBallTick) // Fire the ball if the player has been holding it for too long.
+	if(m_LoseBallTick && Server()->Tick() >= m_LoseBallTick) // Fire the ball if the player has been holding it for too long.
 		WillFire = true;
 		
 	if(!WillFire)
@@ -445,20 +445,20 @@ void CCharacter::FireWeapon()
 
 	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0)
 	{	
-		if(GameServer()->m_pController->pLostBall == 1)
+		if(GameServer()->m_pController->m_LostBall == 1)
 		{
 			m_aWeapons[WEAPON_GRENADE].m_Got = true;
 			m_aWeapons[WEAPON_GRENADE].m_Ammo = 1;
 			SetWeapon(WEAPON_GRENADE);
-			LoseBallTick = Server()->Tick() +Server()->TickSpeed() * 3;
-			GameServer()->m_pController->pLostBall = 0;
+			m_LoseBallTick = Server()->Tick() +Server()->TickSpeed() * 3;
+			GameServer()->m_pController->m_LostBall = 0;
 		}
 		else if (m_ActiveWeapon == WEAPON_GRENADE)
 		{
 			m_aWeapons[m_ActiveWeapon].m_Ammo = 0;
 			SetWeapon(WEAPON_HAMMER);
 			m_aWeapons[WEAPON_GRENADE].m_Got = false;
-			LoseBallTick = 0;
+			m_LoseBallTick = 0;
 		}
 	}
 	else if(m_aWeapons[m_ActiveWeapon].m_Ammo > 0) // -1 == unlimited
@@ -583,7 +583,7 @@ void CCharacter::Tick()
 {
 	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0)
 	{
-		this->m_Armor = (LoseBallTick - Server()->Tick()) * 11 / (Server()->TickSpeed() * 3);
+		this->m_Armor = (m_LoseBallTick - Server()->Tick()) * 11 / (Server()->TickSpeed() * 3);
 		if(this->m_Armor >= 11)
 			this->m_Armor -= 1;
 	}
@@ -721,9 +721,9 @@ void CCharacter::Die(int Killer, int Weapon)
 {
 	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0)
 	{
-		while(LoseBallTick)
+		while(m_LoseBallTick)
 		{
-			LoseBallTick = 1;
+			m_LoseBallTick = 1;
 			FireWeapon();
 		}
 	}
@@ -765,7 +765,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0 && Weapon == WEAPON_HAMMER)
 		return false;
 
-	if(GameServer()->m_pController->bNoDamage)
+	if(GameServer()->m_pController->m_IsNoDamage)
 		return false;
 	
 	if(GameServer()->m_pController->IsFriendlyFire(m_pPlayer->GetCID(), From) && !g_Config.m_SvTeamdamage)
@@ -922,7 +922,7 @@ void CCharacter::PlayerGetBall()
 	m_aWeapons[WEAPON_GRENADE].m_Got = true;
 	m_aWeapons[WEAPON_GRENADE].m_Ammo = 1;
 	SetWeapon(WEAPON_GRENADE);
-	LoseBallTick = Server()->Tick() + Server()->TickSpeed() * 3;
+	m_LoseBallTick = Server()->Tick() + Server()->TickSpeed() * 3;
 }
 
 bool CCharacter::LoseBall()
@@ -931,8 +931,8 @@ bool CCharacter::LoseBall()
 	{
 		SetWeapon(WEAPON_HAMMER);
 		m_aWeapons[WEAPON_GRENADE].m_Got = false;
-		GameServer()->m_pController->pLostBall = 1;
-		LoseBallTick = 0;
+		GameServer()->m_pController->m_LostBall = 1;
+		m_LoseBallTick = 0;
 		return true;
 	}
 

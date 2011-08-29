@@ -22,9 +22,9 @@ CProjectile::CProjectile(CGameWorld *pGameWorld, int Type, int Owner, vec2 Pos, 
 	m_StartTick = Server()->Tick();
 	m_Explosive = Explosive;
 	if((Dir.x < 0?-Dir.x:Dir.x) > (Dir.y < 0?-Dir.y:Dir.y))
-		this->pick_up_again = abs(Dir.x * (float)Server()->TickSpeed() * GameServer()->Tuning()->m_GrenadeSpeed / 4000.0);
+		this->m_FootPickupDistance = abs(Dir.x * (float)Server()->TickSpeed() * GameServer()->Tuning()->m_GrenadeSpeed / 4000.0);
 	else
-		this->pick_up_again = abs(Dir.y * (float)Server()->TickSpeed() * GameServer()->Tuning()->m_GrenadeSpeed / 4000.0);
+		this->m_FootPickupDistance = abs(Dir.y * (float)Server()->TickSpeed() * GameServer()->Tuning()->m_GrenadeSpeed / 4000.0);
 
 	GameWorld()->InsertEntity(this);
 }
@@ -93,42 +93,42 @@ void CProjectile::Tick()
 	{
 			bool CanExplode = false; //<- should the grenade explode?
 
-			float Pt = (Server()->Tick()-m_StartTick-1)/(float)Server()->TickSpeed();
-			float Ct = (Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed();
-			float Nt = (Server()->Tick()-m_StartTick+1)/(float)Server()->TickSpeed();
+			float PreviousTick = (Server()->Tick()-m_StartTick-1)/(float)Server()->TickSpeed();
+			float CurrentTick = (Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed();
+			float NextTick = (Server()->Tick()-m_StartTick+1)/(float)Server()->TickSpeed();
 
-			vec2 NextP = GetPos(Nt);
-			vec2 CurP = GetPos(Ct);
-			vec2 PrevP = GetPos(Pt);
+			vec2 NextPosition = GetPos(NextTick);
+			vec2 CurPosition = GetPos(CurrentTick);
+			vec2 PrevPosition = GetPos(PreviousTick);
+			vec2 CollisionPosition = vec2(0,0);
+			vec2 FreePosition = vec2(0,0);
 
 			CCharacter *OwnerChar = GameServer()->GetPlayerChar(m_Owner);
-			CCharacter *TargetChr = GameServer()->m_World.IntersectCharacter(PrevP, CurP, 6.0f, CurP, OwnerChar);
+			CCharacter *TargetChr = GameServer()->m_World.IntersectCharacter(PrevPosition, CurPosition, 6.0f, CurPosition, OwnerChar);
 			CCharacter *TChar;
 
-			float FreeTime = -1.0f;
-			for(float i = Ct; i <= Nt; i += (Nt-Ct)/30.0f)
+			float TimeToCollision = -1.0f;
+			for(float SearchTick1 = CurrentTick; SearchTick1 <= NextTick; SearchTick1 += (NextTick-CurrentTick)/30.0f)
 			{
-				vec2 tmp_pos = GetPos(i);
-				if(GameServer()->Collision()->IsTileSolid((int) tmp_pos.x, (int) tmp_pos.y))
+				vec2 TempPosition = GetPos(SearchTick1);
+				if(GameServer()->Collision()->IsTileSolid((int) TempPosition.x, (int) TempPosition.y))
 				{
 					break;
 				}
-				FreeTime = i;
+				TimeToCollision = SearchTick1;
 			}
-			vec2 ColPos = vec2(0,0);
-			vec2 FreePos = vec2(0,0);
-			if(FreeTime == -1.0f)
+			if(TimeToCollision == -1.0f)
 			{
-				pick_up_again = 0;
+				m_FootPickupDistance = 0;
 				CanExplode = true;
-				for(float St = Ct; St > Ct-1.0f; St-=0.02f)
+				for(float SearchTick2 = CurrentTick; SearchTick2 > CurrentTick-1.0f; SearchTick2-=0.02f)
 				{
-					vec2 SearchPos = GetPos(St);
-					if(!GameServer()->Collision()->IsTileSolid((int)SearchPos.x, (int)SearchPos.y))
+					vec2 SearchPosition = GetPos(SearchTick2);
+					if(!GameServer()->Collision()->IsTileSolid((int)SearchPosition.x, (int)SearchPosition.y))
 					{
-						FreeTime = St;
-						ColPos = GetPos(St+0.02f);
-						FreePos = GetPos(St);
+						TimeToCollision = SearchTick2;
+						CollisionPosition = GetPos(SearchTick2+0.02f);
+						FreePosition = GetPos(SearchTick2);
 						CanExplode = false;
 						break;
 					}
@@ -136,92 +136,93 @@ void CProjectile::Tick()
 			}
 			else
 			{
-				FreeTime += Ct;
-				ColPos = GetPos(FreeTime+(Nt-Ct)/30.0f);
-				FreePos = GetPos(FreeTime);
+				TimeToCollision += CurrentTick;
+				CollisionPosition = GetPos(TimeToCollision+(NextTick-CurrentTick)/30.0f);
+				FreePosition = GetPos(TimeToCollision);
 			}
-			if(FreeTime < Nt-(Nt-Ct)/30.0f)
+			if(TimeToCollision < NextTick-(NextTick-CurrentTick)/30.0f)
 			{
-				bool coll_x = false;
-				bool coll_y = false;
-				if(GameServer()->Collision()->IsTileSolid((int)FreePos.x, (int)ColPos.y))
+				bool CollidedAtX = false;
+				bool CollidedAtY = false;
+				if(GameServer()->Collision()->IsTileSolid((int)FreePosition.x, (int)CollisionPosition.y))
 				{
-					coll_y = true;
+					CollidedAtY = true;
 				}
-				if(GameServer()->Collision()->IsTileSolid((int)ColPos.x, (int)FreePos.y))
+				if(GameServer()->Collision()->IsTileSolid((int)CollisionPosition.x, (int)FreePosition.y))
 				{
-					coll_x = true;
+					CollidedAtX = true;
 				}
-				if(coll_x)
+				if(CollidedAtX)
 				{
 					m_Direction.x = -m_Direction.x/(g_Config.m_SvBounceLoss+100)*100;
-					if (colbx >= 50)
+					if (m_CollisionsByX >= 50)
 					{
-						GameServer()->m_pController->BallSpawning = Server()->Tick() + 4 * Server()->TickSpeed();
+						GameServer()->m_pController->m_BallSpawning = Server()->Tick() + 4 * Server()->TickSpeed();
 						GameServer()->m_World.DestroyEntity(this);
-						GameServer()->CreateSound(CurP, m_SoundImpact);
+						GameServer()->CreateSound(CurPosition, m_SoundImpact);
 
 						if(m_Explosive && g_Config.m_SvExplosions == 1)
-							GameServer()->CreateExplosion(CurP, m_Owner, m_Weapon, false);
+							GameServer()->CreateExplosion(CurPosition, m_Owner, m_Weapon, false);
 					}
-					colbx = colbx + 1;
+					m_CollisionsByX++;
 				}
 				else
 				{
 					m_Direction.x = m_Direction.x/(g_Config.m_SvBounceLoss+100)*100;
-					colbx = 0;
+					m_CollisionsByX = 0;
 				}
-				if(coll_y)
+				if(CollidedAtY)
 				{
 					m_Direction.y = -(m_Direction.y + 2*GameServer()->Tuning()->m_GrenadeCurvature/10000*GameServer()->Tuning()->m_GrenadeSpeed*(Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed())/(g_Config.m_SvBounceLoss+100)*100;
-					if (colby >= 50)
+					if (m_CollisionByY >= 50)
 					{
-						GameServer()->m_pController->BallSpawning = Server()->Tick() + 4 * Server()->TickSpeed();
+						GameServer()->m_pController->m_BallSpawning = Server()->Tick() + 4 * Server()->TickSpeed();
 						GameServer()->m_World.DestroyEntity(this);
-						GameServer()->CreateSound(CurP, m_SoundImpact);
+						GameServer()->CreateSound(CurPosition, m_SoundImpact);
 
 						if(m_Explosive && g_Config.m_SvExplosions == 1)
-							GameServer()->CreateExplosion(CurP, m_Owner, m_Weapon, false);
+							GameServer()->CreateExplosion(CurPosition, m_Owner, m_Weapon, false);
 					}
-					colby = colby + 1;
+					m_CollisionByY = m_CollisionByY + 1;
 				}
 				else
 				{
 					m_Direction.y = (m_Direction.y + 2*GameServer()->Tuning()->m_GrenadeCurvature/10000*(Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed()*GameServer()->Tuning()->m_GrenadeSpeed)/(g_Config.m_SvBounceLoss+100)*100;
-					colby = 0;
+					m_CollisionByY = 0;
 				}
 
-				m_Pos = FreePos;
+				m_Pos = FreePosition;
 				m_StartTick = Server()->Tick();
-				pick_up_again = 0;
+				m_FootPickupDistance = 0;
 			}
-			if(pick_up_again == 0)
+			if(m_FootPickupDistance == 0)
 			{
-				TChar = GameServer()->m_World.IntersectCharacter(PrevP, CurP, 6.0f, CurP, NULL);
+				TChar = GameServer()->m_World.IntersectCharacter(PrevPosition, CurPosition, 6.0f, CurPosition, NULL);
 			}
 			else
 			{
-				pick_up_again--;
-				TChar = GameServer()->m_World.IntersectCharacter(PrevP, CurP, 6.0f, CurP, OwnerChar);
+				m_FootPickupDistance--;
+				TChar = GameServer()->m_World.IntersectCharacter(PrevPosition, CurPosition, 6.0f, CurPosition, OwnerChar);
 			}
 			if(TChar)
 			{
 					TChar->PlayerGetBall();
 					GameServer()->m_World.DestroyEntity(this);
 					m_LastOwner = m_Owner;
-					TChar->LoseBallTick = Server()->Tick() + Server()->TickSpeed() * 3;
+					TChar->m_LoseBallTick = Server()->Tick() + Server()->TickSpeed() * 3;
+					GameServer()->m_pController->m_Passer = m_Owner;
 			}
-			else if(GameServer()->Collision()->isGoal((int)CurP.x,(int)CurP.y, true) && GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
+			else if(GameServer()->Collision()->isGoal((int)CurPosition.x,(int)CurPosition.y, false) && GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
 			{
 				GameServer()->m_World.DestroyEntity(this);
-				GameServer()->CreateExplosion(CurP, m_Owner, m_Weapon, true);
+				GameServer()->CreateExplosion(CurPosition, m_Owner, m_Weapon, true);
 				GameServer()->m_pController->OnGoalRed(m_Owner);
 				//game.controller->on_player_goal(game.players[owner], 0);
 			}
-			else if(GameServer()->Collision()->isGoal((int)CurP.x,(int)CurP.y, false) && GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
+			else if(GameServer()->Collision()->isGoal((int)CurPosition.x,(int)CurPosition.y, true) && GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
 			{
 				GameServer()->m_World.DestroyEntity(this);
-				GameServer()->CreateExplosion(CurP, m_Owner, m_Weapon, true);
+				GameServer()->CreateExplosion(CurPosition, m_Owner, m_Weapon, true);
 				GameServer()->m_pController->OnGoalBlue(m_Owner);
 				//game.controller->on_player_goal(game.players[owner], 1);
 			}
