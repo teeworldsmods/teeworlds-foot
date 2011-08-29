@@ -362,7 +362,7 @@ void IGameController::OnCharacterSpawn(class CCharacter *pChr)
 	pChr->IncreaseHealth(10);
 
 	// give default weapons
-	if(str_comp(g_Config.m_SvGametype, "foot") == 0)
+	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0)
 	{
 		
 			pChr->GiveWeapon(WEAPON_HAMMER, -1);

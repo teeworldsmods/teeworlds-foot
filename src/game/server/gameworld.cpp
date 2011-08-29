@@ -198,7 +198,7 @@ CCharacter *CGameWorld::IntersectCharacter(vec2 Pos0, vec2 Pos1, float Radius, v
 	CCharacter *p = (CCharacter *)FindFirst(ENTTYPE_CHARACTER);
 	for(; p; p = (CCharacter *)p->TypeNext())
  	{
-		if(p == pNotThis)// && str_comp(g_Config.m_SvGametype, "foot") != 0)//<-this one?
+		if(p == pNotThis)// && str_comp_nocase(g_Config.m_SvGametype, "foot") != 0)//<-this one?
 			continue;
 
 		vec2 IntersectPos = closest_point_on_line(Pos0, Pos1, p->m_Pos);

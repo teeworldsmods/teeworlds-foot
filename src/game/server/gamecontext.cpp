@@ -512,7 +512,7 @@ void CGameContext::OnClientEnter(int ClientID)
 	m_apPlayers[ClientID]->Respawn();
 	char aBuf[512];
 
-	if(str_comp(g_Config.m_SvGametype, "foot") == 0)
+	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0)
 		str_format(aBuf, sizeof(aBuf), "'%s' entered the server", Server()->ClientName(ClientID));
 	else
 		str_format(aBuf, sizeof(aBuf), "'%s' entered and joined the %s", Server()->ClientName(ClientID), m_pController->GetTeamName(m_apPlayers[ClientID]->GetTeam()));
@@ -528,7 +528,7 @@ void CGameContext::OnClientEnter(int ClientID)
 void CGameContext::OnClientConnected(int ClientID)
 {
 	// Check which team the player should be on
-	if(str_comp(g_Config.m_SvGametype, "foot") == 0){
+	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0){
 		const int StartTeam = TEAM_SPECTATORS;
 		m_apPlayers[ClientID] = new(ClientID) CPlayer(this, ClientID, StartTeam); }
 	else{
@@ -1376,13 +1376,13 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	//players = new CPlayer[MAX_CLIENTS];
 
 	// select gametype
-	if(str_comp(g_Config.m_SvGametype, "foot") == 0)
+	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0)
 		m_pController = new CGameControllerFOOT(this);
-	else if(str_comp(g_Config.m_SvGametype, "dm") == 0)
+	else if(str_comp_nocase(g_Config.m_SvGametype, "dm") == 0 || str_comp_nocase(g_Config.m_SvGametype, "udm") == 0)
 		m_pController = new CGameControllerDM(this);
-	else if(str_comp(g_Config.m_SvGametype, "ctf") == 0)
+	else if(str_comp_nocase(g_Config.m_SvGametype, "ctf") == 0 || str_comp_nocase(g_Config.m_SvGametype, "uctf") == 0)
 		m_pController = new CGameControllerCTF(this);
-	else if(str_comp(g_Config.m_SvGametype, "tdm") == 0)
+	else if(str_comp_nocase(g_Config.m_SvGametype, "tdm") == 0 || str_comp_nocase(g_Config.m_SvGametype, "utdm") == 0)
 		m_pController = new CGameControllerTDM(this);
 	else
 		m_pController = new CGameControllerDM(this);

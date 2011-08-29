@@ -73,11 +73,11 @@ MACRO_CONFIG_INT(GfxFinish, gfx_finish, 1, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, ""
 
 MACRO_CONFIG_INT(InpMousesens, inp_mousesens, 100, 5, 100000, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Mouse sensitivity")
 
-MACRO_CONFIG_STR(SvName, sv_name, 128, "unnamed server", CFGFLAG_SERVER, "Server name")
+MACRO_CONFIG_STR(SvName, sv_name, 128, "unnamed Foot server", CFGFLAG_SERVER, "Server name")
 MACRO_CONFIG_STR(SvBindaddr, sv_bindaddr, 128, "", CFGFLAG_SERVER, "Address to bind the server to")
 MACRO_CONFIG_INT(SvPort, sv_port, 8303, 0, 0, CFGFLAG_SERVER, "Port to use for the server")
 MACRO_CONFIG_INT(SvExternalPort, sv_external_port, 0, 0, 0, CFGFLAG_SERVER, "External port to report to the master servers")
-MACRO_CONFIG_STR(SvMap, sv_map, 128, "dm1", CFGFLAG_SERVER, "Map to use on the server")
+MACRO_CONFIG_STR(SvMap, sv_map, 128, "foot", CFGFLAG_SERVER, "Map to use on the server")
 MACRO_CONFIG_INT(SvMaxClients, sv_max_clients, 8, 1, MAX_CLIENTS, CFGFLAG_SERVER, "Maximum number of clients that are allowed on a server")
 MACRO_CONFIG_INT(SvMaxClientsPerIP, sv_max_clients_per_ip, 4, 1, MAX_CLIENTS, CFGFLAG_SERVER, "Maximum number of clients with the same IP that can connect to the server")
 MACRO_CONFIG_INT(SvHighBandwidth, sv_high_bandwidth, 0, 0, 1, CFGFLAG_SERVER, "Use high bandwidth mode. Doubles the bandwidth required for the server. LAN use only")
@@ -107,8 +107,7 @@ MACRO_CONFIG_INT(DbgResizable, dbg_resizable, 0, 0, 0, CFGFLAG_CLIENT, "Enables 
 
 // TeeFoot
 
-MACRO_CONFIG_INT(SvBounceLossX, sv_bounce_loss_x, 50, 0, 100000, CFGFLAG_SERVER, "The ball looses that much x-speed after a bounce")
-MACRO_CONFIG_INT(SvBounceLossY, sv_bounce_loss_y, 50, 0, 100000, CFGFLAG_SERVER, "The ball looses that much y-speed after a bounce")
+MACRO_CONFIG_INT(SvBounceLoss, sv_bounce_loss, 50, 0, 100000, CFGFLAG_SERVER, "The ball looses that much speed after a bounce")
 MACRO_CONFIG_INT(SvExplosions, sv_explosions, 0, 0, 1, CFGFLAG_SERVER, "Should the grenades explode")
 
 /*
@@ -150,11 +149,12 @@ MACRO_CONFIG_INT(SvExplosions, sv_explosions, 0, 0, 1, CFGFLAG_SERVER, "Should t
 	MACRO_CONFIG_STR(sv_message, 300, "", CFGFLAG_SERVER, "Message displayed all sv_message_time seconds, max 100 symbols",2)
 	MACRO_CONFIG_INT(sv_message_time, 5, 1, 30, CFGFLAG_SERVER, "Time between two sv_messages in minutes",2)
 	MACRO_CONFIG_INT(sv_max_idle, 300, 0, 600, CFGFLAG_SERVER, "Time after a player got ask state to wait with kick him",2)
-	MACRO_CONFIG_INT(sv_set_afk_idle, 60, 0, 600, CFGFLAG_SERVER, "Time how long a player doesn´t get afk state afte his last input",2)
+	MACRO_CONFIG_INT(sv_set_afk_idle, 60, 0, 600, CFGFLAG_SERVER, "Time how long a player doesnï¿½t get afk state afte his last input",2)
 	MACRO_CONFIG_INT(sv_max_noob_time, 20, 0, 600, CFGFLAG_SERVER, "Time how long a nooblisted player can be on the server",2)
 
 	MACRO_CONFIG_INT(sv_dev_powers, 0, 0, 1, CFGFLAG_SERVER, "Special powers for developers :)",2)
 
 	MACRO_CONFIG_STR(sv_blacklist, 32, "Blacklist.TEEFOOT", CFGFLAG_SERVER, "Blacklist for some fuckign ip refreshing noobs!",2)
 */
+
 #endif

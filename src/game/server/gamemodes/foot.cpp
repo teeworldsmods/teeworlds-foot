@@ -9,7 +9,7 @@
 CGameControllerFOOT::CGameControllerFOOT(class CGameContext *pGameServer)
 : IGameController(pGameServer)
 {
-	m_pGameType = "Teefoot";
+	m_pGameType = "Foot";
 	
 	m_GameFlags = GAMEFLAG_TEAMS;
 }

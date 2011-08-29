@@ -20,7 +20,7 @@ CPickup::CPickup(CGameWorld *pGameWorld, int Type, int SubType)
 
 void CPickup::Reset()
 {
-	if(str_comp(g_Config.m_SvGametype, "foot") == 0 && m_Type == POWERUP_WEAPON && m_Subtype == WEAPON_GRENADE)
+	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0 && m_Type == POWERUP_WEAPON && m_Subtype == WEAPON_GRENADE)
 	{
 			GameServer()->m_pController->BallSpawning = Server()->Tick() + 5 * Server()->TickSpeed();
 			m_SpawnTick = 1;
@@ -34,7 +34,7 @@ void CPickup::Reset()
 
 void CPickup::Tick()
 {
-	if(str_comp(g_Config.m_SvGametype, "foot") == 0 && m_Type == POWERUP_WEAPON && m_Subtype == WEAPON_GRENADE)
+	if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0 && m_Type == POWERUP_WEAPON && m_Subtype == WEAPON_GRENADE)
 	{
 		if(GameServer()->m_pController->BallSpawning && m_SpawnTick != -1 && GameServer()->m_pController->BallSpawning <= Server()->Tick())
 		{
@@ -87,7 +87,7 @@ void CPickup::Tick()
 			case POWERUP_WEAPON:
 				if(m_Subtype >= 0 && m_Subtype < NUM_WEAPONS)
 				{
-					if(str_comp(g_Config.m_SvGametype, "foot") == 0 && m_Subtype == WEAPON_GRENADE)
+					if(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0 && m_Subtype == WEAPON_GRENADE)
 					{
 						//givebal
 						m_SpawnTick = 0;
@@ -136,7 +136,7 @@ void CPickup::Tick()
 				break;
 		};
 
-		if(RespawnTime >= 0 && !(str_comp(g_Config.m_SvGametype, "foot") == 0 && m_Type == POWERUP_WEAPON))
+		if(RespawnTime >= 0 && !(str_comp_nocase(g_Config.m_SvGametype, "foot") == 0 && m_Type == POWERUP_WEAPON))
 		{
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), "pickup player='%d:%s' item=%d/%d",

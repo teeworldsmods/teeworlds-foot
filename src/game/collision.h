@@ -35,15 +35,10 @@ public:
 	void MoveBox(vec2 *pInoutPos, vec2 *pInoutVel, vec2 Size, float Elasticity);
 	bool TestBox(vec2 Pos, vec2 Size);
 
-	int OnRoundCounter(int x, int y);
-	int OnCheckPoint1(int x, int y);
-	int OnCheckPoint2(int x, int y);
-	int OnCheckPoint3(int x, int y);
-
 	// TeeFoot
+	bool isGoal(int x, int y, bool Red);
+	bool isGoal(int Index, bool Red);
 	bool IsTileSolid(int x, int y);
-	int IsRedGoal(int x, int y);
-	int IsBlueGoal(int x, int y);
 };
 
 #endif

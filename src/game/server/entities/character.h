@@ -26,7 +26,7 @@ public:
 
 	CCharacter(CGameWorld *pWorld);
 
-	float HoldBallTick;
+	float LoseBallTick;
 
 	virtual void Reset();
 	virtual void Destroy();

@@ -63,7 +63,7 @@ vec2 CProjectile::GetPos(float Time)
 
 void CProjectile::Tick()
 {
-	if(str_comp(g_Config.m_SvGametype, "foot"))
+	if(str_comp_nocase(g_Config.m_SvGametype, "foot"))
 	{
 		float Pt = (Server()->Tick()-m_StartTick-1)/(float)Server()->TickSpeed();
 		float Ct = (Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed();
@@ -154,7 +154,7 @@ void CProjectile::Tick()
 				}
 				if(coll_x)
 				{
-					m_Direction.x = -m_Direction.x/(g_Config.m_SvBounceLossX+100)*100;
+					m_Direction.x = -m_Direction.x/(g_Config.m_SvBounceLoss+100)*100;
 					if (colbx >= 50)
 					{
 						GameServer()->m_pController->BallSpawning = Server()->Tick() + 4 * Server()->TickSpeed();
@@ -168,12 +168,12 @@ void CProjectile::Tick()
 				}
 				else
 				{
-					m_Direction.x = m_Direction.x/(g_Config.m_SvBounceLossX+100)*100;
+					m_Direction.x = m_Direction.x/(g_Config.m_SvBounceLoss+100)*100;
 					colbx = 0;
 				}
 				if(coll_y)
 				{
-					m_Direction.y = -(m_Direction.y + 2*GameServer()->Tuning()->m_GrenadeCurvature/10000*GameServer()->Tuning()->m_GrenadeSpeed*(Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed())/(g_Config.m_SvBounceLossY+100)*100;
+					m_Direction.y = -(m_Direction.y + 2*GameServer()->Tuning()->m_GrenadeCurvature/10000*GameServer()->Tuning()->m_GrenadeSpeed*(Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed())/(g_Config.m_SvBounceLoss+100)*100;
 					if (colby >= 50)
 					{
 						GameServer()->m_pController->BallSpawning = Server()->Tick() + 4 * Server()->TickSpeed();
@@ -187,7 +187,7 @@ void CProjectile::Tick()
 				}
 				else
 				{
-					m_Direction.y = (m_Direction.y + 2*GameServer()->Tuning()->m_GrenadeCurvature/10000*(Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed()*GameServer()->Tuning()->m_GrenadeSpeed)/(g_Config.m_SvBounceLossY+100)*100;
+					m_Direction.y = (m_Direction.y + 2*GameServer()->Tuning()->m_GrenadeCurvature/10000*(Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed()*GameServer()->Tuning()->m_GrenadeSpeed)/(g_Config.m_SvBounceLoss+100)*100;
 					colby = 0;
 				}
 
@@ -209,16 +209,16 @@ void CProjectile::Tick()
 					TChar->PlayerGetBall();
 					GameServer()->m_World.DestroyEntity(this);
 					m_LastOwner = m_Owner;
-					TChar->HoldBallTick = Server()->Tick() + Server()->TickSpeed() * 3;
+					TChar->LoseBallTick = Server()->Tick() + Server()->TickSpeed() * 3;
 			}
-			else if(GameServer()->Collision()->IsRedGoal((int)CurP.x,(int)CurP.y) && GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
+			else if(GameServer()->Collision()->isGoal((int)CurP.x,(int)CurP.y, true) && GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
 			{
 				GameServer()->m_World.DestroyEntity(this);
 				GameServer()->CreateExplosion(CurP, m_Owner, m_Weapon, true);
 				GameServer()->m_pController->OnGoalRed(m_Owner);
 				//game.controller->on_player_goal(game.players[owner], 0);
 			}
-			else if(GameServer()->Collision()->IsBlueGoal((int)CurP.x,(int)CurP.y) && GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
+			else if(GameServer()->Collision()->isGoal((int)CurP.x,(int)CurP.y, false) && GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetTeam() != -1)// && m_Owner > -1)
 			{
 				GameServer()->m_World.DestroyEntity(this);
 				GameServer()->CreateExplosion(CurP, m_Owner, m_Weapon, true);

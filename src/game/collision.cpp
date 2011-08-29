@@ -45,24 +45,33 @@ void CCollision::Init(class CLayers *pLayers)
 		case TILE_NOHOOK:
 			m_pTiles[i].m_Index = COLFLAG_SOLID|COLFLAG_NOHOOK;
 			break;
-		case TILE_REDGOAL:
-			m_pTiles[i].m_Index = TILE_REDGOAL;
-			break;
-		case TILE_BLUEGOAL:
-			m_pTiles[i].m_Index = TILE_BLUEGOAL;
-			break;
 		default:
 			m_pTiles[i].m_Index = 0;
 		}
+
+		if(Index == TILE_GOAL_BLUE || Index == TILE_GOAL_RED)
+			m_pTiles[i].m_Index = Index;
 	}
 }
 
 int CCollision::GetTile(int x, int y)
-{
+{/*
 	int Nx = clamp(x/32, 0, m_Width-1);
 	int Ny = clamp(y/32, 0, m_Height-1);
 
 	return m_pTiles[Ny*m_Width+Nx].m_Index > 128 ? 0 : m_pTiles[Ny*m_Width+Nx].m_Index;
+*/
+
+	int Nx = clamp(x/32, 0, m_Width-1);
+	int Ny = clamp(y/32, 0, m_Height-1);
+	if(!m_pTiles || Ny < 0 || Nx < 0 || m_pTiles[Ny*m_Width+Nx].m_Index > 128)
+		return 0;
+
+	if(m_pTiles[Ny*m_Width+Nx].m_Index == COLFLAG_SOLID
+		|| m_pTiles[Ny*m_Width+Nx].m_Index == (COLFLAG_SOLID|COLFLAG_NOHOOK)
+		|| m_pTiles[Ny*m_Width+Nx].m_Index == COLFLAG_DEATH)
+		return m_pTiles[Ny*m_Width+Nx].m_Index;
+	return 0;
 }
 
 bool CCollision::IsTileSolid(int x, int y)
@@ -209,20 +218,23 @@ void CCollision::MoveBox(vec2 *pInoutPos, vec2 *pInoutVel, vec2 Size, float Elas
 	*pInoutVel = Vel;
 }
 
-int CCollision::IsRedGoal(int x, int y)
+bool CCollision::isGoal(int x, int y, bool Red)
 {
-	int Nx = x/32;
-	int Ny = y/32;
-	if(y<0 || Nx < 0 || Nx >= m_Width || Ny >= m_Height)
-		return 0;
-	return (int)m_pTiles[Ny*m_Width+Nx].m_Index == TILE_REDGOAL;
+	int Nx = clamp(x/32, 0, m_Width-1);
+	int Ny = clamp(y/32, 0, m_Height-1);
+
+	dbg_assert(x > 0 && y > 0 && Nx > 0 && Nx < m_Width && Ny > 0 && Ny < m_Height, "Invalid x,y co-ordinates in isGoal");
+	if(Red)
+		return m_pTiles[Ny*m_Width+Nx].m_Index == TILE_GOAL_BLUE;
+	else
+		return m_pTiles[Ny*m_Width+Nx].m_Index == TILE_GOAL_RED;
 }
 
-int CCollision::IsBlueGoal(int x, int y)
+bool CCollision::isGoal(int Index, bool Red)
 {
-	int Nx = x/32;
-	int Ny = y/32;
-	if(y<0 || Nx < 0 || Nx >= m_Width || Ny >= m_Height)
-		return 0;
-	return (int)m_pTiles[Ny*m_Width+Nx].m_Index == TILE_BLUEGOAL;
+	dbg_assert(Index > 0 && Index < m_Height * m_Width, "Invalid x,y co-ordinates in isGoal");
+	if(Red)
+		return m_pTiles[Index].m_Index == TILE_GOAL_BLUE;
+	else
+		return m_pTiles[Index].m_Index == TILE_GOAL_RED;
 }
