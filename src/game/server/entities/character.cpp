@@ -724,6 +724,7 @@ void CCharacter::Die(int Killer, int Weapon)
 		while(m_LoseBallTick)
 		{
 			m_LoseBallTick = 1;
+			m_ReloadTimer = 0;
 			FireWeapon();
 		}
 	}
