@@ -401,6 +401,19 @@ void CCharacter::FireWeapon()
 
 		case WEAPON_GRENADE:
 		{
+
+			if(GameServer()->Collision()->isGoal((int)m_Pos.x,(int)m_Pos.y, false) && m_pPlayer && m_pPlayer->GetTeam() != -1)// && m_Owner > -1)
+			{
+				GameServer()->m_World.RemoveProjectiles();
+				GameServer()->CreateExplosion(m_Pos, m_pPlayer->GetCID(), WEAPON_GRENADE, true);
+				GameServer()->m_pController->OnGoalRed(m_pPlayer->GetCID());
+			}
+			else if(GameServer()->Collision()->isGoal((int)m_Pos.x,(int)m_Pos.y, true) && m_pPlayer && m_pPlayer->GetTeam() != -1)// && m_Owner > -1)
+			{
+				GameServer()->m_World.RemoveProjectiles();
+				GameServer()->CreateExplosion(m_Pos, m_pPlayer->GetCID(), WEAPON_GRENADE, true);
+				GameServer()->m_pController->OnGoalBlue(m_pPlayer->GetCID());
+			}
 			CProjectile *pProj = new CProjectile(GameWorld(), WEAPON_GRENADE,
 				m_pPlayer->GetCID(),
 				ProjStartPos,
