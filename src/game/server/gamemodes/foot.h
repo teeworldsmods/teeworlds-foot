@@ -19,5 +19,6 @@ public:
 	int OnGoalRed(int Owner);
 	int OnGoalBlue(int Owner);
 	virtual void StartRound();
+	virtual void DoWincheck();
 };
 #endif

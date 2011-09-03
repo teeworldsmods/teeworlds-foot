@@ -111,6 +111,7 @@ MACRO_CONFIG_INT(SvBounceLoss, sv_bounce_loss, 50, 0, 100000, CFGFLAG_SERVER, "T
 MACRO_CONFIG_INT(SvExplosions, sv_explosions, 0, 0, 1, CFGFLAG_SERVER, "Should the grenades explode")
 MACRO_CONFIG_INT(SvSpawnDelay, sv_spawn_delay, 2000, 0, 100000, CFGFLAG_SERVER, "Spawn delay for players after a kill")
 MACRO_CONFIG_INT(SvBallRespawn, sv_ball_respawn, 5, 0, 100000, CFGFLAG_SERVER, "Respawn time of the ball")
+MACRO_CONFIG_INT(SvSuddenDeathScoreDiff, sv_sudden_death_score_diff, 2, 0, 1000, CFGFLAG_SERVER, "Difference between the team-scores before a team can win in sudden death")
 
 /*
 	MACRO_CONFIG_INT(sv_real_foot, 0, 0, 1, CFGFLAG_SERVER, "Disables the hammer",2)

@@ -142,3 +142,28 @@ void CGameControllerFoot::Snap(int SnappingClient)
 	pGameDataObj->m_FlagCarrierRed = 0;
 	pGameDataObj->m_FlagCarrierBlue = 0;
 }
+
+void CGameControllerFoot::DoWincheck()
+{
+	if(m_GameOverTick == -1 && !m_Warmup && !GameServer()->m_World.m_ResetRequested)
+	{
+		if(IsTeamplay())
+		{
+
+			if(m_SuddenDeath)
+			{
+				if(abs(m_aTeamscore[TEAM_RED] - m_aTeamscore[TEAM_BLUE]) >= g_Config.m_SvSuddenDeathScoreDiff)
+					EndRound();
+			}
+			// check score win condition
+			else if((g_Config.m_SvScorelimit > 0 && (m_aTeamscore[TEAM_RED] >= g_Config.m_SvScorelimit || m_aTeamscore[TEAM_BLUE] >= g_Config.m_SvScorelimit)) ||
+				(g_Config.m_SvTimelimit > 0 && (Server()->Tick()-m_RoundStartTick) >= g_Config.m_SvTimelimit*Server()->TickSpeed()*60))
+			{
+				if(m_aTeamscore[TEAM_RED] != m_aTeamscore[TEAM_BLUE])
+					EndRound();
+				else
+					m_SuddenDeath = 1;
+			}
+		}
+	}
+}
