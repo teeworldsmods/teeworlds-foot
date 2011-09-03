@@ -73,12 +73,12 @@ int CGameControllerFoot::OnGoalRed(int Owner)
 			GameServer()->m_apPlayers[Owner]->GetTeam() == TEAM_BLUE // Make sure it's not an own goal
 			)
 	{
-		str_format(aBuf, sizeof(aBuf), "%s scored for the red team with a pass from %s", Server()->ClientName(Owner), Server()->ClientName(m_Passer));
+		str_format(aBuf, sizeof(aBuf), "%s scored for the blue team with a pass from %s", Server()->ClientName(Owner), Server()->ClientName(m_Passer));
 		IGameController::OnGoalRed(m_Passer);
 		m_aTeamscore[TEAM_BLUE]++;
 	}
 	else
-		str_format(aBuf, sizeof(aBuf), "%s scored for the red team", Server()->ClientName(Owner));
+		str_format(aBuf, sizeof(aBuf), "%s scored for the blue team", Server()->ClientName(Owner));
 	if (GameServer()->m_apPlayers[Owner]->GetTeam() == TEAM_BLUE)
 		m_aTeamscore[TEAM_BLUE]++;
 	else if (GameServer()->m_apPlayers[Owner]->GetTeam() == TEAM_RED)
@@ -108,12 +108,12 @@ int CGameControllerFoot::OnGoalBlue(int Owner)
 			GameServer()->m_apPlayers[Owner]->GetTeam() == TEAM_RED // Make sure it's not an own goal
 			)
 	{
-		str_format(aBuf, sizeof(aBuf), "%s scored for the blue team with a pass from %s", Server()->ClientName(Owner), Server()->ClientName(m_Passer));
+		str_format(aBuf, sizeof(aBuf), "%s scored for the red team with a pass from %s", Server()->ClientName(Owner), Server()->ClientName(m_Passer));
 		IGameController::OnGoalBlue(m_Passer);
 		m_aTeamscore[TEAM_RED]++;
 	}
 	else
-		str_format(aBuf, sizeof(aBuf), "%s scored for the blue team", Server()->ClientName(Owner));
+		str_format(aBuf, sizeof(aBuf), "%s scored for the red team", Server()->ClientName(Owner));
 	if (GameServer()->m_apPlayers[Owner]->GetTeam() == TEAM_RED)
 		m_aTeamscore[TEAM_RED]++;
 	else if (GameServer()->m_apPlayers[Owner]->GetTeam() == TEAM_BLUE)
