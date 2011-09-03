@@ -111,6 +111,7 @@ MACRO_CONFIG_INT(SvBounceLoss, sv_bounce_loss, 50, 0, 100000, CFGFLAG_SERVER, "T
 MACRO_CONFIG_INT(SvExplosions, sv_explosions, 0, 0, 1, CFGFLAG_SERVER, "Should the grenades explode")
 MACRO_CONFIG_INT(SvSpawnDelay, sv_spawn_delay, 2000, 0, 100000, CFGFLAG_SERVER, "Spawn delay for players after a kill")
 MACRO_CONFIG_INT(SvBallRespawn, sv_ball_respawn, 5, 0, 100000, CFGFLAG_SERVER, "Respawn time of the ball")
+MACRO_CONFIG_INT(SvScoreDiff, sv_score_diff, 1, 0, 1000, CFGFLAG_SERVER, "Difference between the team-scores before a team can win")
 MACRO_CONFIG_INT(SvSuddenDeathScoreDiff, sv_sudden_death_score_diff, 2, 0, 1000, CFGFLAG_SERVER, "Difference between the team-scores before a team can win in sudden death")
 
 /*
@@ -127,7 +128,6 @@ MACRO_CONFIG_INT(SvSuddenDeathScoreDiff, sv_sudden_death_score_diff, 2, 0, 1000,
 	MACRO_CONFIG_INT(sv_team_pass_score, 1, 0, 1000, CFGFLAG_SERVER, "Score for the team through a goal with pass",2)
 	MACRO_CONFIG_INT(sv_own_goal, 1, 0, 1000, CFGFLAG_SERVER, "Negative score for a wrong goal",2)
 	MACRO_CONFIG_INT(sv_suicide_score, 1, 0, 1, CFGFLAG_SERVER, "Count selfkills as negative score",2)
-	MACRO_CONFIG_INT(sv_diff_score, 1, 0, 1000, CFGFLAG_SERVER, "Difference between the team-scores before a team can win",2)
 	MACRO_CONFIG_INT(sv_kill_score, 1, 0, 1, CFGFLAG_SERVER, "Are there points for a kill",2)
 	MACRO_CONFIG_INT(sv_generate_pro_pw, 0, 0, 1, CFGFLAG_SERVER, "Gives good players a password at the end of a round.",2)
 	MACRO_CONFIG_STR(sv_pre_password_msg, 512, "Here is your password for the professional server. It's the correct one for this day and your nick, noone else.", CFGFLAG_SERVER, "Message the server gives the player who receives a password for pro-server",2)
