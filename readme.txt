@@ -1,7 +1,7 @@
 TeeFoot is a football mod for teeworlds and it's being rebuilt currently by GreYFoX aka Shereef Marzouk
 
 Teeworlds Read Me:
-Copyright (c) 2011 Magnus Auvinen
+Copyright (c) 2012 Magnus Auvinen
 
 
 This software is provided 'as-is', without any express or implied
